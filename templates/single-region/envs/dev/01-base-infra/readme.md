@@ -1,5 +1,7 @@
 # Base Infrastructure - Step 1
 
+## Overview
+
 This Terraform configuration deploys the foundational infrastructure for MongoDB Atlas clusters and associated Azure resources in a single-region setup.
 
 ## Prerequisites
@@ -9,6 +11,7 @@ This Terraform configuration deploys the foundational infrastructure for MongoDB
 ### Required Previous Steps
 
 1. **Environment Setup**: Ensure the environment is properly configured.
+
    - Verify the `locals.tf` file contains accurate values for your setup.
 
 ### Required Manual Configuration
@@ -16,8 +19,18 @@ This Terraform configuration deploys the foundational infrastructure for MongoDB
 Before running this step, you need to:
 
 1. **Review Network Configuration**:
+
    - Verify the `vnet_address_space` and `private_subnet_prefixes` in `locals.tf` align with your network design.
    - Ensure the subnet CIDR doesn't conflict with existing subnets.
+
+## How to Deploy
+
+```bash
+terraform init
+terraform validate
+terraform plan -out tfplan
+terraform apply tfplan
+```
 
 ## What This Step Deploys
 
@@ -29,9 +42,16 @@ This configuration creates:
 - **Private Subnet**: Subnet for private connectivity.
 - **Private Endpoint**: Secure connection to MongoDB Atlas.
 
+## Validate
+
+- Atlas cluster is deployed and healthy in the configured region.
+- Private Endpoint is approved/connected.
+- DNS resolution from inside the VNet returns a private IP for the Atlas hostname.
+
 ## Post-Deployment Steps
 
-After the infrastructure is deployed, you can proceed to Step 2 for application resources. Follow the detailed guide: [Application Resources Guide](../02-app-resources/readme.md)
+After the infrastructure is deployed, you can proceed to Step 2 for application resources.
+Follow the detailed guide: [Application Resources Guide](../02-app-resources/readme.md)
 
 ## Default Values in `locals.tf`
 
@@ -70,3 +90,15 @@ The backup feature is enabled by default (`backup_enabled = true`). It ensures t
 - **reference_hour_of_day**: Specifies the hour of the day when backups are initiated.
 - **reference_minute_of_hour**: Specifies the minute of the hour when backups are initiated.
 - **restore_window_days**: Defines the number of days for which backups are retained and can be restored.
+
+## Outputs
+
+- **vnet_name**: Name of the virtual network created.
+- **resource_group_name**: Name of the Resource Group for infrastructure resources.
+- **cluster_id**: ID of the MongoDB Atlas cluster.
+- **project_name**: Name of the MongoDB Atlas project.
+- **mongodb_project_id**: ID of the MongoDB Atlas project.
+- **privatelink_id**: ID of the private link created for MongoDB Atlas.
+- **atlas_pe_service_id**: ID of the Atlas private endpoint service.
+- **atlas_privatelink_endpoint_id**: ID of the Atlas private link endpoint.
+- **infra_resource_group_name**: Name of the infrastructure Resource Group.

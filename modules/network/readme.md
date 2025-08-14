@@ -1,6 +1,10 @@
 # Network Module
 
+## Overview
+
 This Terraform module provisions core networking resources in Azure, including:
+
+## Features
 
 - Virtual Network (VNet)
 - Private Subnet
@@ -8,47 +12,68 @@ This Terraform module provisions core networking resources in Azure, including:
 - Network Security Group (NSG)
 - Private Endpoint for MongoDB Atlas (with Atlas PrivateLink integration)
 
-## Resources Created
+## Usage
 
-- `azurerm_virtual_network` (VNet)
-- `azurerm_subnet` (Private Subnet)
-- `azurerm_nat_gateway` and `azurerm_public_ip`
-- `azurerm_network_security_group` (NSG)
-- `azurerm_private_endpoint` (for MongoDB Atlas)
-- `mongodbatlas_privatelink_endpoint_service` (Atlas PrivateLink)
+```hcl
+module "network" {
+  source = "./modules/network"
 
-## Module Inputs
+  vnet_name                       = "vnet-myapp-dev"
+  location                        = "East US"
+  resource_group_name             = "rg-myapp-dev"
+  address_space                   = ["10.0.0.0/16"]
+  private_subnet_name             = "snet-private"
+  private_subnet_prefixes         = ["10.0.1.0/24"]
+  name_prefix                     = "myapp"
+  public_ip_name                  = "pip-myapp"
+  nat_gateway_name                = "nat-myapp"
+  nsg_name                        = "nsg-myapp"
+  private_endpoint_name           = "pe-myapp"
+  private_service_connection_name = "psc-myapp"
+  manual_connection               = false
+  private_connection_resource_id  = "resource-id"
+  private_subnet_id               = "subnet-id"
+  request_message                 = "Please approve connection"
+  project_id                      = "project-id"
+  private_link_id                 = "private-link-id"
 
-| Variable                        | Description                                               | Type           | Required / Default           |
-|----------------------------------|-----------------------------------------------------------|----------------|-----------------------------|
-| vnet_name                       | Name of the virtual network                               | string         | yes                        |
-| location                        | Azure region for the resources                            | string         | yes                        |
-| resource_group_name             | Resource group for all resources                          | string         | yes                        |
-| address_space                   | Address space for the VNet                                | list(string)   | yes                        |
-| private_subnet_name             | Name of the private subnet                                | string         | yes                        |
-| private_subnet_prefixes         | Address prefixes for the private subnet                   | list(string)   | yes                        |
-| name_prefix                     | Prefix for naming NAT, NSG, and Public IP resources       | string         | yes                        |
-| tags                            | Tags to apply to all resources                            | map(string)    | no                         |
-| public_ip_name                  | Name of the public IP resource                            | string         | yes                        |
-| nat_gateway_name                | Name of the NAT gateway resource                          | string         | yes                        |
-| nsg_name                        | Name of the network security group                        | string         | yes                        |
-| private_endpoint_name           | Name of the private endpoint for MongoDB                  | string         | yes                        |
-| private_service_connection_name | Name of the private service connection                    | string         | yes                        |
-| manual_connection               | Whether approval is required for the private endpoint     | bool           | no (default: false)        |
-| private_connection_resource_id  | Resource ID of the MongoDB Atlas instance                 | string         | yes                        |
-| private_subnet_id               | ID of the private subnet                                  | string         | yes                        |
-| request_message                 | Message for manual connection approval                    | string         | no (default provided)      |
-| project_id                      | ID of the MongoDB Atlas project                           | string         | yes                        |
-| private_link_id                 | Atlas Private Link ID                                     | any            | yes                        |
+  tags = {
+    Environment = "dev"
+    Project     = "myapp"
+  }
+}
+```
 
-## Module Outputs
+## Inputs
 
-| Output                | Description                              |
-|-----------------------|------------------------------------------|
-| vnet_id               | ID of the Virtual Network                |
-| vnet_name             | Name of the Virtual Network              |
-| private_subnet_id     | ID of the private subnet                 |
-| nat_gateway_id        | ID of the NAT Gateway                    |
-| nat_gateway_public_ip | Public IP address of the NAT Gateway     |
-| private_subnet_nsg_id | ID of the NSG associated with the subnet |
-| private_endpoint_id   | ID of the MongoDB private endpoint       |
+| Name                        | Description                                               | Type           |
+| --------------------------- | --------------------------------------------------------- | -------------- |
+| `vnet_name`                 | Name of the virtual network                               | `string`       |
+| `location`                  | Azure region for the resources                            | `string`       |
+| `resource_group_name`       | Resource group for all resources                          | `string`       |
+| `address_space`             | Address space for the VNet                                | `list(string)` |
+| `private_subnet_name`       | Name of the private subnet                                | `string`       |
+| `private_subnet_prefixes`   | Address prefixes for the private subnet                   | `list(string)` |
+| `name_prefix`               | Prefix for naming NAT, NSG, and Public IP resources       | `string`       |
+| `tags`                      | Tags to apply to all resources                            | `map(string)`  |
+| `public_ip_name`            | Name of the public IP resource                            | `string`       |
+| `nat_gateway_name`          | Name of the NAT gateway resource                          | `string`       |
+| `nsg_name`                  | Name of the network security group                        | `string`       |
+| `private_endpoint_name`     | Name of the private endpoint for MongoDB                  | `string`       |
+| `private_service_connection_name` | Name of the private service connection              | `string`       |
+| `manual_connection`         | Whether approval is required for the private endpoint     | `bool`         |
+| `private_connection_resource_id` | Resource ID of the MongoDB Atlas instance            | `string`       |
+| `private_subnet_id`         | ID of the private subnet                                  | `string`       |
+| `request_message`           | Message for manual connection approval                    | `string`       |
+| `project_id`                | ID of the MongoDB Atlas project                           | `string`       |
+| `private_link_id`           | Atlas Private Link ID                                     | `any`          |
+
+## Outputs
+
+- **vnet\_id**: ID of the Virtual Network.
+- **vnet\_name**: Name of the Virtual Network.
+- **private\_subnet\_id**: ID of the private subnet.
+- **nat\_gateway\_id**: ID of the NAT Gateway.
+- **nat\_gateway\_public\_ip**: Public IP address of the NAT Gateway.
+- **private\_subnet\_nsg\_id**: ID of the NSG associated with the subnet.
+- **private\_endpoint\_id**: ID of the MongoDB private endpoint.

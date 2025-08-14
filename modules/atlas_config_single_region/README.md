@@ -1,5 +1,7 @@
 # MongoDB Atlas Single-Region Configuration Module
 
+## Overview
+
 This module configures a MongoDB Atlas project, advanced cluster, and Azure PrivateLink endpoint for **single-region deployments** using the official Terraform `mongodbatlas` provider.
 
 > **Use this module if you require a MongoDB Atlas cluster in a single cloud region.**
@@ -12,39 +14,7 @@ This module configures a MongoDB Atlas project, advanced cluster, and Azure Priv
 - Provisions an Azure PrivateLink endpoint for secure connectivity
 - Configures automated backup schedule with customizable policies
 
-## Inputs
-
-| Name              | Description                                 | Type     | Required/Default |
-|-------------------|---------------------------------------------|----------|------------------|
-| `org_id`          | MongoDB Atlas organization ID                | `string` | required         |
-| `project_name`    | Name of the Atlas project                    | `string` | required         |
-| `cluster_name`    | Name of the cluster                          | `string` | required         |
-| `cluster_type`    | Cluster type (e.g. `REPLICASET`)             | `string` | required         |
-| `instance_size`   | Cluster tier (e.g. `M10`, `M20`)             | `string` | required         |
-| `region`          | **Atlas region (e.g. `WESTERN_EUROPE`)**     | `string` | required         |
-| `zone_name`       | Logical zone name                            | `string` | required         |
-| `num_shards`      | Number of shards                             | `number` | required         |
-| `electable_nodes` | Number of electable nodes                    | `number` | required         |
-| `priority`        | Election priority                            | `number` | required         |
-| `backup_enabled`  | Whether to enable backups                    | `bool`   | required         |
-| `reference_hour_of_day` | Hour of day for backup reference time (0-23) | `number` | default: 3       |
-| `reference_minute_of_hour` | Minute of hour for backup reference time (0-59) | `number` | default: 45      |
-| `restore_window_days` | Number of days for restore window           | `number` | default: 4       |
-
-> **Note:** The `region` input is a single value, not a list. For multi-region clusters, use the multi-region module instead.
-
-## Outputs
-
-| Name                        | Description                                      |
-|-----------------------------|--------------------------------------------------|
-| `cluster_id`                | ID of the MongoDB cluster                        |
-| `project_id`                | ID of the MongoDB Atlas project                  |
-| `project_name`              | Name of the MongoDB Atlas project                |
-| `privatelink_id`            | ID of the Atlas PrivateLink endpoint             |
-| `atlas_pe_service_id`       | Atlas PrivateLink service resource ID            |
-| `atlas_privatelink_endpoint_id` | ID of the Atlas PrivateLink endpoint         |
-
-## Example Usage
+## Usage
 
 ```hcl
 module "mongodbatlas_config" {
@@ -63,7 +33,33 @@ module "mongodbatlas_config" {
 }
 ```
 
----
+## Inputs
+
+| Name                     | Description                                      | Type     |
+|--------------------------|--------------------------------------------------|----------|
+| `org_id`                 | MongoDB Atlas organization ID                   | `string` |
+| `project_name`           | Name of the Atlas project                       | `string` |
+| `cluster_name`           | Name of the cluster                             | `string` |
+| `cluster_type`           | Cluster type (e.g. `REPLICASET`)                | `string` |
+| `instance_size`          | Cluster tier (e.g. `M10`, `M20`)                | `string` |
+| `region`                 | **Atlas region (e.g. `WESTERN_EUROPE`)**        | `string` |
+| `zone_name`              | Logical zone name                               | `string` |
+| `num_shards`             | Number of shards                                | `number` |
+| `electable_nodes`        | Number of electable nodes                       | `number` |
+| `priority`               | Election priority                               | `number` |
+| `backup_enabled`         | Whether to enable backups                       | `bool`   |
+| `reference_hour_of_day`  | Hour of day for backup reference time (0-23)    | `number` |
+| `reference_minute_of_hour` | Minute of hour for backup reference time (0-59)| `number` |
+| `restore_window_days`    | Number of days for restore window               | `number` |
+
+## Outputs
+
+- **cluster\_id**: ID of the MongoDB cluster.
+- **project\_name**: Name of the MongoDB Atlas project.
+- **project\_id**: ID of the MongoDB Atlas project.
+- **privatelink\_id**: ID of the Atlas PrivateLink endpoint.
+- **atlas\_pe\_service\_id**: Atlas PrivateLink service resource ID.
+- **atlas\_privatelink\_endpoint\_id**: ID of the Atlas PrivateLink endpoint.
 
 ## Backup Configuration
 
@@ -94,3 +90,5 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
   restore_window_days      = var.restore_window_days
 }
 ```
+
+For **multi-region deployments**, use the [multi-region module](../../multi-region/atlas_config_multi_region/readme.md).

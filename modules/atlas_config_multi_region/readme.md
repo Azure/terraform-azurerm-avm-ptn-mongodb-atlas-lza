@@ -1,5 +1,7 @@
 # MongoDB Atlas Multi-Region Configuration Module
 
+## Overview
+
 This module configures a MongoDB Atlas project, advanced cluster, and Azure PrivateLink endpoint for **multi-region deployments** using the official Terraform `mongodbatlas` provider.
 
 > **Use this module if you require a MongoDB Atlas cluster that spans multiple cloud regions for high availability and disaster recovery.**
@@ -12,40 +14,7 @@ This module configures a MongoDB Atlas project, advanced cluster, and Azure Priv
 - Provisions an Azure PrivateLink endpoint for secure connectivity
 - Configures automated backup schedule with customizable policies
 
----
-
-## Inputs
-
-| Name            | Description                                              | Type                                                                 | Required/Default |
-|-----------------|----------------------------------------------------------|----------------------------------------------------------------------|------------------|
-| `org_id`        | MongoDB Atlas organization ID                            | `string`                                                             | required         |
-| `project_name`  | MongoDB Atlas project name                               | `string`                                                             | required         |
-| `cluster_name`  | Name of the MongoDB cluster                              | `string`                                                             | required         |
-| `cluster_type`  | Type of the cluster (e.g., REPLICASET)                   | `string`                                                             | required         |
-| `instance_size` | Size of the cluster instance (e.g., M10)                 | `string`                                                             | required         |
-| `backup_enabled`| Whether backup is enabled for the cluster                | `bool`                                                               | required         |
-| `region_configs`| **Map of region configurations for multi-region cluster**| `map(object({ atlas_region = string, azure_region = string, priority = number, electable_specs = object({ instance_size = string, node_count    = number }) }))` | required         |
-
-> **Note:** The `region_configs` input allows you to specify multiple regions and their priorities for the cluster. This is the key difference from the single-region module.
-
-> **Regions:** Only the first ones listed on the [Availability Zones and Supported Regions page](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#availability-zones-and-supported-regions) are supported for deployment. Please ensure your selected region is available and approved in your Azure environment.
-> **Disclaimer:**
->
-> - The `instance_size` must be the same for all regions specified in `region_configs`. For more details, refer to the [official documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#electable_specs-1).
-> - The `node_count` must be either 3, 5, or 7, and no other values are allowed. For more details, refer to the [official documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster.html?utm_source=chatgpt.com#electable_nodes-1).
-
-## Outputs
-
-| Name                        | Description                                      |
-|-----------------------------|--------------------------------------------------|
-| `cluster_id`                | ID of the MongoDB cluster                        |
-| `project_id`                | ID of the MongoDB Atlas project                  |
-| `project_name`              | Name of the MongoDB Atlas project                |
-| `privatelink_ids`           | IDs of the Atlas PrivateLink endpoints (per region) |
-| `atlas_pe_service_ids`      | Atlas PrivateLink service resource IDs (per region) |
-| `atlas_privatelink_endpoint_ids` | IDs of the Atlas PrivateLink endpoints (per region) |
-
-## Example Usage
+## Usage
 
 ```hcl
 module "mongodbatlas_config" {
@@ -88,7 +57,26 @@ module "mongodbatlas_config" {
 }
 ```
 
----
+## Inputs
+
+| Name            | Description                                              | Type                                                                 |
+|-----------------|----------------------------------------------------------|----------------------------------------------------------------------|
+| `org_id`        | MongoDB Atlas organization ID                            | `string`                                                             |
+| `project_name`  | MongoDB Atlas project name                               | `string`                                                             |
+| `cluster_name`  | Name of the MongoDB cluster                              | `string`                                                             |
+| `cluster_type`  | Type of the cluster (e.g., REPLICASET)                   | `string`                                                             |
+| `instance_size` | Size of the cluster instance (e.g., M10)                 | `string`                                                             |
+| `backup_enabled`| Whether backup is enabled for the cluster                | `bool`                                                               |
+| `region_configs`| **Map of region configurations for multi-region cluster**| `map(object({ atlas_region = string, azure_region = string, priority = number, electable_specs = object({ instance_size = string, node_count    = number }) }))` |
+
+## Outputs
+
+- **cluster\_id**: ID of the MongoDB cluster.
+- **project\_name**: Name of the MongoDB Atlas project.
+- **project\_id**: ID of the MongoDB Atlas project.
+- **privatelink\_ids**: IDs of the Atlas PrivateLink endpoints (per region).
+- **atlas\_pe\_service\_ids**: Atlas PrivateLink service resource IDs (per region).
+- **atlas\_privatelink\_endpoint\_ids**: IDs of the Atlas PrivateLink endpoints (per region).
 
 ## Backup Configuration
 
@@ -121,8 +109,6 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
 }
 ```
 
-> **Note:** For snapshot distribution across regions, refer to the [official documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule#example-usage---create-a-cluster-with-cloud-backup-enabled-with-snapshot-distribution).
-
----
+For snapshot distribution across regions, refer to the [official documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_backup_schedule#example-usage---create-a-cluster-with-cloud-backup-enabled-with-snapshot-distribution).
 
 For **single-region deployments**, use the [single-region module](../../single-region/atlas_config_single_region/readme.md).
