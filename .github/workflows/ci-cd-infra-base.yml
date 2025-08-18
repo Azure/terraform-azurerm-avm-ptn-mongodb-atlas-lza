@@ -69,6 +69,28 @@ jobs:
           commenter_type: fmt
           commenter_input: ${{ format('{0}{1}', steps.fmt.outputs.stdout, steps.fmt.outputs.stderr) }}
           commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
+      
+      - name: Cache plugin dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
+
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: v0.52.0
+      - name: Show version
+        run: tflint --version
+
+      - name: Init TFLint
+        run: tflint --init
+        env:
+        # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run TFLint
+        run: tflint --recursive -f compact
 
   plan:
     name: Plan
