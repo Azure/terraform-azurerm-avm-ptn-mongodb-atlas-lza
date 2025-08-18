@@ -92,6 +92,13 @@ jobs:
       - name: Run TFLint
         run: tflint --recursive -f compact
 
+      - name: Checkov GitHub Action
+        id: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          config_file: .checkov.yml
+          github_pat: ${{ secrets.GH_PAT }}
+
   plan:
     name: Plan
     needs: validate
