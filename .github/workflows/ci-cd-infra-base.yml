@@ -1,0 +1,221 @@
+name: CI - CD - Infra
+
+on:
+  workflow_call:
+    inputs:
+      tf_version:
+        type: string
+        default: latest
+      working_directory:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      area:
+        type: string
+        required: true
+      azure_client_id:
+        type: string
+      azure_subscription_id:
+        type: string
+      azure_tenant_id:
+        type: string
+      apply_changes:
+        type: boolean
+        default: false
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
+  BACKEND_RG: ${{ vars.BACKEND_RG }}
+  BACKEND_STORAGE_ACCOUNT: ${{ vars.BACKEND_STORAGE_ACCOUNT }}
+  BACKEND_CONTAINER: ${{ vars.BACKEND_CONTAINER }}
+  MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
+  MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set TF version
+        run: |
+          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt -check -recursive -diff
+        continue-on-error: false
+
+      - name: Post format comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure') }}
+        uses: GetTerminus/terraform-pr-commenter@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TF_WORKSPACE: ${{ inputs.working_directory }}
+        with:
+          commenter_type: fmt
+          commenter_input: ${{ format('{0}{1}', steps.fmt.outputs.stdout, steps.fmt.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
+
+  plan:
+    name: Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    outputs:
+      tf_plan_name: ${{ env.TF_PLAN_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set TF version
+        run: |
+          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 'Azure CLI login'
+        uses: azure/login@v2.1.0
+        with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          allow-no-subscriptions: false
+
+      - name: Write backend config file
+        run: |
+          cat > backend.tfbackend <<EOF
+          resource_group_name  = "${{ env.BACKEND_RG }}"
+          storage_account_name = "${{ env.BACKEND_STORAGE_ACCOUNT }}"
+          container_name       = "${{ env.BACKEND_CONTAINER }}"
+          key                  = "${{ inputs.area }}.tfstate"
+          use_oidc             = true
+          EOF
+
+      - name: Terraform init
+        run: terraform init -backend-config=backend.tfbackend
+
+      - name: Post init comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && (steps.init.outcome == 'success' || steps.init.outcome == 'failure') }}
+        uses: GetTerminus/terraform-pr-commenter@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TF_WORKSPACE: ${{ inputs.working_directory }}
+        with:
+          commenter_type: init
+          commenter_input: ${{ format('{0}{1}', steps.init.outputs.stdout, steps.init.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.init.outputs.exitcode }}
+
+      - name: Define workspace plan name
+        run: |
+          echo "TF_PLAN_NAME=${{ inputs.area }}-${{ github.run_id }}-${{ github.run_attempt }}.plan" >> "$GITHUB_ENV"
+
+      - name: Terraform plan
+        id: plan
+        run: |
+          set -o pipefail
+          terraform plan -no-color -input=false -out=$TF_PLAN_NAME |& tee tf_plan_command.output
+        env:
+          MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
+          MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
+
+      - name: Post plan comment
+        uses: GetTerminus/terraform-pr-commenter@v3.0.3
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TF_WORKSPACE: ${{ inputs.working_directory }}
+        with:
+          commenter_type: plan
+          commenter_plan_path: ${{inputs.working_directory}}/tf_plan_command.output
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+      - name: Archive terraform plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.TF_PLAN_NAME}}
+          path: ${{inputs.working_directory}}/${{env.TF_PLAN_NAME}}
+
+      - name: Parse terraform plan to JSON
+        run: terraform show -json $TF_PLAN_NAME > $TF_PLAN_NAME.json
+
+  apply:
+    name: Apply
+    if: ${{ inputs.apply_changes == true || (inputs.environment != 'prod' && github.event_name == 'push' && inputs.area != 'application')}}
+    needs: [validate, plan]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    env:
+      TF_PLAN_NAME: ${{ needs.plan.outputs.tf_plan_name }}
+      BACKEND_RG: ${{ vars.BACKEND_RG }}
+      BACKEND_STORAGE_ACCOUNT: ${{ vars.BACKEND_STORAGE_ACCOUNT }}
+      BACKEND_CONTAINER: ${{ vars.BACKEND_CONTAINER }}
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+
+      - name: Set TF version
+        run: |
+          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 'Azure CLI login'
+        uses: azure/login@v2.1.0
+        with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          allow-no-subscriptions: false
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.TF_PLAN_NAME }}
+          path: ${{ inputs.working_directory }}
+
+      - name: Write backend config file
+        run: |
+          cat > backend.tfbackend <<EOF
+          resource_group_name  = "${{ env.BACKEND_RG }}"
+          storage_account_name = "${{ env.BACKEND_STORAGE_ACCOUNT }}"
+          container_name       = "${{ env.BACKEND_CONTAINER }}"
+          key                  = "${{ inputs.area }}.tfstate"
+          use_oidc             = true
+          EOF
+      
+      - name: Terraform init
+        run: terraform init -backend-config=backend.tfbackend
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve ${{ env.TF_PLAN_NAME }}
+        env:
+          MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
+          MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
