@@ -69,8 +69,6 @@ Follow the detailed guide: [Application Resources Guide](../02-app-resources/rea
 - **cluster_type**: Type of cluster, default is `REPLICASET`.
 - **instance_size**: Size of the cluster instance, default is `M10`.
 - **backup_enabled**: Enables backup for the cluster, default is `true`.
-- **num_shards**: Number of shards, default is `1`.
-- **zone_name**: Zone name for the cluster, default is `Zone 1`.
 - **region**: MongoDB Atlas region, default is `US_EAST_2`.
 - **electable_nodes**: Number of electable nodes, default is `3`.
 - **priority**: Priority of the region, default is `7`.

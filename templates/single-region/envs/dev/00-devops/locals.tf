@@ -4,11 +4,10 @@ locals {
   suffix   = "devops"
 
   # Storage Account
-  account_tier          = "Standard"
-  replication_type      = "ZRS"
-  container_name        = "tfstate"
-  container_access_type = "private"
-  subscription_id       = "{your-azure-subscription-id}" # Replace with your actual subscription ID
+  account_tier     = "Standard"
+  replication_type = "ZRS"
+  container_name   = "tfstate"
+  subscription_id  = "{your-azure-subscription-id}" # Replace with your actual subscription ID
 
   # Identity
   github_organization_name = "{your-github-org}"      # Replace with your GitHub org

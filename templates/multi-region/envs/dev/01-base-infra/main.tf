@@ -9,14 +9,12 @@ module "mongodb_atlas_config" {
   org_id                   = local.org_id
   cluster_name             = local.cluster_name
   cluster_type             = local.cluster_type
-  instance_size            = local.instance_size
   backup_enabled           = local.backup_enabled
   region_configs           = local.region_configs
   project_name             = local.project_name
   reference_hour_of_day    = local.reference_hour_of_day
   reference_minute_of_hour = local.reference_minute_of_hour
   restore_window_days      = local.restore_window_days
-
   providers = {
     mongodbatlas = mongodbatlas
   }

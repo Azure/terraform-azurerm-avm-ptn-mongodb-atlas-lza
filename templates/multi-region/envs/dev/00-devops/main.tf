@@ -22,7 +22,7 @@ module "devops" {
 }
 
 module "mongodb_marketplace" {
-  source            = "../../../../../modules/mongodb-marketplace"
+  source            = "../../../../../modules/mongodb_marketplace"
   count             = local.should_create_mongo_org ? 1 : 0
   location          = local.location
   subscription_id   = local.subscription_id

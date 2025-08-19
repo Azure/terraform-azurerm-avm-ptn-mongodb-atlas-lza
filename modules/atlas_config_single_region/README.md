@@ -25,8 +25,6 @@ module "mongodbatlas_config" {
   cluster_type   = "REPLICASET"
   instance_size  = "M10"
   region         = "WESTERN_EUROPE"
-  zone_name      = "Zone 1"
-  num_shards     = 1
   electable_nodes = 3
   priority       = 7
   backup_enabled = true
@@ -43,8 +41,6 @@ module "mongodbatlas_config" {
 | `cluster_type`           | Cluster type (e.g. `REPLICASET`)                | `string` |
 | `instance_size`          | Cluster tier (e.g. `M10`, `M20`)                | `string` |
 | `region`                 | **Atlas region (e.g. `WESTERN_EUROPE`)**        | `string` |
-| `zone_name`              | Logical zone name                               | `string` |
-| `num_shards`             | Number of shards                                | `number` |
 | `electable_nodes`        | Number of electable nodes                       | `number` |
 | `priority`               | Election priority                               | `number` |
 | `backup_enabled`         | Whether to enable backups                       | `bool`   |

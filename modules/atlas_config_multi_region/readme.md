@@ -23,7 +23,6 @@ module "mongodbatlas_config" {
   project_name   = "my-project"
   cluster_name   = "cluster1"
   cluster_type   = "REPLICASET"
-  instance_size  = "M10"
   backup_enabled = true
   region_configs = {
     eastus = {
@@ -65,7 +64,6 @@ module "mongodbatlas_config" {
 | `project_name`  | MongoDB Atlas project name                               | `string`                                                             |
 | `cluster_name`  | Name of the MongoDB cluster                              | `string`                                                             |
 | `cluster_type`  | Type of the cluster (e.g., REPLICASET)                   | `string`                                                             |
-| `instance_size` | Size of the cluster instance (e.g., M10)                 | `string`                                                             |
 | `backup_enabled`| Whether backup is enabled for the cluster                | `bool`                                                               |
 | `region_configs`| **Map of region configurations for multi-region cluster**| `map(object({ atlas_region = string, azure_region = string, priority = number, electable_specs = object({ instance_size = string, node_count    = number }) }))` |
 

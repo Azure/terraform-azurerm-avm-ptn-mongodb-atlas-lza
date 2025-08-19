@@ -12,7 +12,6 @@ locals {
   org_id                   = "your-org-id"
   cluster_name             = "your-cluster-name"
   cluster_type             = "REPLICASET"
-  instance_size            = "M10"
   backup_enabled           = true
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45

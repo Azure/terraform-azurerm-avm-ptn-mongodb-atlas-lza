@@ -11,8 +11,6 @@ module "mongodb_atlas_config" {
   cluster_type             = local.cluster_type
   instance_size            = local.instance_size
   backup_enabled           = local.backup_enabled
-  num_shards               = local.num_shards
-  zone_name                = local.zone_name
   region                   = local.region
   electable_nodes          = local.electable_nodes
   priority                 = local.priority

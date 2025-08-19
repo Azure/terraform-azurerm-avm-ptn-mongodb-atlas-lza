@@ -13,11 +13,6 @@ variable "cluster_type" {
   type        = string
 }
 
-variable "instance_size" {
-  description = "Size of the cluster instance (e.g., M10)."
-  type        = string
-}
-
 variable "backup_enabled" {
   description = "Whether backup is enabled for the cluster."
   type        = bool

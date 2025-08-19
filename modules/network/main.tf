@@ -68,6 +68,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "endpoint_service" {
   project_id                  = var.project_id
   private_link_id             = var.private_link_id
   endpoint_service_id         = azurerm_private_endpoint.mongodb.id
-  private_endpoint_ip_address = azurerm_private_endpoint.mongodb.private_service_connection.0.private_ip_address
+  private_endpoint_ip_address = azurerm_private_endpoint.mongodb.private_service_connection[0].private_ip_address
   provider_name               = "AZURE"
 }

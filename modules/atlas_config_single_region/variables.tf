@@ -23,16 +23,6 @@ variable "backup_enabled" {
   type        = bool
 }
 
-variable "num_shards" {
-  description = "Number of shards in the cluster."
-  type        = number
-}
-
-variable "zone_name" {
-  description = "Zone name for replication."
-  type        = string
-}
-
 variable "region" {
   description = "Azure region where the cluster will be deployed."
   type        = string

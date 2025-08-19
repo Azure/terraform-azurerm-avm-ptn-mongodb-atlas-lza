@@ -2,8 +2,6 @@ locals {
   location    = "eastus2"
   environment = "dev"
 
-  purge_protection_enabled = true
-
   project_name = "atlas-mongodb"
 
   vnet_address_space      = ["10.0.0.0/16"]
@@ -19,8 +17,6 @@ locals {
   cluster_type             = "REPLICASET"
   instance_size            = "M10"
   backup_enabled           = true
-  num_shards               = 1
-  zone_name                = "Zone 1"
   region                   = "US_EAST_2"
   electable_nodes          = 3
   priority                 = 7
