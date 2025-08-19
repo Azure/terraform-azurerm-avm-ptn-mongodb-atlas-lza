@@ -2,7 +2,7 @@
 
 ## Overview
 
-This module creates Azure resources including App Service Plan, Web App, and associated networking components for hosting the test connection db app located in [Test DB Connection Deployment Steps](../../test-db-connection/test_db_connection_steps.md) with VNet integration.
+This module creates Azure resources including App Service Plan, Web App, and associated networking components for hosting the test connection db app located in [Test DB Connection Deployment Steps](../../docs/wiki/Test_DB_connection_steps.md) with VNet integration.
 
 ## Features
 
@@ -54,4 +54,4 @@ module "application" {
 
 - Ensure the subnet is defined with a valid address prefix. Adjust the address prefix as per your network design. Also, **the VNet name has to be the same VNet connected to the Atlas Private Endpoint.**
 - App service plan's SKU has to be greater than or equal to B1 to support VNet integration.
-- For more information on how to deploy the test db connection App, please refer to this [document](../../docs/test_db_connection_steps.md).
+- For more information on how to deploy the test db connection App, please refer to this [document](../../docs/wiki/Test_DB_connection_steps.md).
