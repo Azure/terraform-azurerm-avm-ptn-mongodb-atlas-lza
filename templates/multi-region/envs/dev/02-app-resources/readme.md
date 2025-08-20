@@ -83,7 +83,7 @@ This configuration creates the following for each specified region:
 ## Post-Deployment Steps
 
 After the infrastructure is deployed, to utilize the test database connection app, you need to deploy the code.
-Follow the detailed guide: [Database Connection Testing Guide](../../docs/test_db_connection_steps.md).
+Follow the detailed guide: [Database Connection Testing Guide](../../../../../docs/wiki/Test_DB_connection_steps.md).
 
 ## Default Values in `locals.tf`
 
