@@ -1,0 +1,79 @@
+name: CI-CD - Infra Dev (Multi Region)
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'templates/multi-region/envs/dev/**'
+      - 'modules/**'
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'templates/multi-region/envs/dev/**'
+      - 'modules/**'
+  workflow_dispatch:
+    inputs:
+      apply_base_infra:
+        description: 'Applies the plan for base infrastructure'
+        required: true
+        default: false
+        type: boolean
+      deploy_test_db_app:
+        description: 'Deploy test application infrastructure (Optional)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      base_infra: ${{ steps.changes.outputs.base_infra }}
+      application: ${{ steps.changes.outputs.application }}
+      modules: ${{ steps.changes.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            base_infra:
+              - 'templates/multi-region/envs/dev/01-base-infra/**'
+            application:
+              - 'templates/multi-region/envs/dev/02-app-resources/**'
+            modules:
+              - 'modules/**'
+
+  base-infra-dev:
+    name: base-infra-dev
+    needs: [changes]
+    if: >-
+      ${{ inputs.apply_base_infra == true || needs.changes.outputs.base_infra == 'true' || needs.changes.outputs.modules == 'true' }}
+    uses: ./.github/workflows/ci-cd-infra-base.yml
+    with:
+      tf_version: latest
+      working_directory: templates/multi-region/envs/dev/01-base-infra
+      environment: dev
+      area: 01-base-infra-multi-region
+      apply_changes: ${{ inputs.apply_base_infra || false }}
+    secrets: inherit
+
+  application-dev:
+    name: application-dev
+    if: ${{ always() }}
+    needs: [changes, base-infra-dev]
+    uses: ./.github/workflows/ci-cd-infra-base.yml
+    with:
+      tf_version: latest
+      working_directory: templates/multi-region/envs/dev/02-app-resources
+      environment: dev
+      area: 02-application-multi-region
+      apply_changes: ${{ inputs.deploy_test_db_app || false }}
+    secrets: inherit
