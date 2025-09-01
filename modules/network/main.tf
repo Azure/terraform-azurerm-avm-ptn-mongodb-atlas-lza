@@ -71,3 +71,28 @@ resource "mongodbatlas_privatelink_endpoint_service" "endpoint_service" {
   private_endpoint_ip_address = azurerm_private_endpoint.mongodb.private_service_connection[0].private_ip_address
   provider_name               = "AZURE"
 }
+
+// Observability subnets
+resource "azurerm_subnet" "observability_function_app_subnet" {
+  count                = var.deploy_observability_subnets ? 1 : 0
+  name                 = var.observability_function_app_subnet_name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = var.observability_function_app_subnet_prefixes
+
+  delegation {
+    name = "functionapp-delegation"
+    service_delegation {
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "observability_private_endpoint_subnet" {
+  count                = var.deploy_observability_subnets ? 1 : 0
+  name                 = var.observability_private_endpoint_subnet_name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = var.observability_private_endpoint_subnet_prefixes
+}

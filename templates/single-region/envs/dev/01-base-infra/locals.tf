@@ -4,8 +4,11 @@ locals {
 
   project_name = "atlas-mongodb"
 
-  vnet_address_space      = ["10.0.0.0/16"]
-  private_subnet_prefixes = ["10.0.1.0/24"]
+  vnet_address_space                             = ["10.0.0.0/16"]
+  private_subnet_prefixes                        = ["10.0.1.0/24"]
+  observability_function_app_subnet_prefixes     = ["10.0.2.0/24"]
+  observability_private_endpoint_subnet_prefixes = ["10.0.3.0/24"]
+
   tags = {
     environment = local.environment
     location    = local.location
@@ -25,5 +28,8 @@ locals {
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
-  naming_suffix_base = "atlas-base-infra"
+  naming_suffix_base = "atlasinfrasingleregion"
+
+  mongo_atlas_client_id     = "mongo_atlas_client_id"
+  mongo_atlas_client_secret = "mongo_atlas_client_secret"
 }

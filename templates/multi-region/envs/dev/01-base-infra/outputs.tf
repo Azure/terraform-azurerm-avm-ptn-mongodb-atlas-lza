@@ -37,3 +37,8 @@ output "vnet_names" {
 output "regions_values" {
   value = { for k, m in local.regions : k => m }
 }
+
+output "function_app_default_hostname" {
+  value       = module.observability.observability_function_default_hostname
+  description = "The default hostname of the Azure Function App"
+}

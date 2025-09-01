@@ -32,3 +32,8 @@ output "atlas_privatelink_endpoint_id" {
 output "infra_resource_group_name" {
   value = azurerm_resource_group.infrastructure_rg.name
 }
+
+output "function_app_default_hostname" {
+  value       = module.observability.observability_function_default_hostname
+  description = "The default hostname of the Azure Function App"
+}

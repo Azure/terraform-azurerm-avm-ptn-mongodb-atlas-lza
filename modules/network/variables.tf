@@ -84,3 +84,46 @@ variable "private_link_id" {
   description = "Atlas Private Link ID."
   type        = any
 }
+
+
+// Observability variables
+variable "deploy_observability_subnets" {
+  description = "True to deploy networking subnets for observability, false to skip."
+  type        = bool
+}
+
+variable "observability_function_app_subnet_name" {
+  description = "Name of the Function App subnet."
+  type        = string
+  validation {
+    condition     = var.deploy_observability_subnets ? length(var.observability_function_app_subnet_name) > 0 : true
+    error_message = "If deploy_observability_subnets is true, observability_function_app_subnet_name must be provided."
+  }
+}
+
+variable "observability_function_app_subnet_prefixes" {
+  description = "Address prefixes for the Function App subnet."
+  type        = list(string)
+  validation {
+    condition     = var.deploy_observability_subnets ? length(var.observability_function_app_subnet_prefixes) > 0 : true
+    error_message = "If deploy_observability_subnets is true, observability_function_app_subnet_prefixes must be provided."
+  }
+}
+
+variable "observability_private_endpoint_subnet_name" {
+  description = "Name of the Private Endpoint subnet."
+  type        = string
+  validation {
+    condition     = var.deploy_observability_subnets ? length(var.observability_private_endpoint_subnet_name) > 0 : true
+    error_message = "If deploy_observability_subnets is true, observability_private_endpoint_subnet_name must be provided."
+  }
+}
+
+variable "observability_private_endpoint_subnet_prefixes" {
+  description = "Address prefixes for the Private Endpoint subnet."
+  type        = list(string)
+  validation {
+    condition     = var.deploy_observability_subnets ? length(var.observability_private_endpoint_subnet_prefixes) > 0 : true
+    error_message = "If deploy_observability_subnets is true, observability_private_endpoint_subnet_prefixes must be provided."
+  }
+}

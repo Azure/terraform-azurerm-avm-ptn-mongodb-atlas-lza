@@ -32,3 +32,13 @@ output "private_endpoint_id" {
   description = "ID of the MongoDB private endpoint"
   value       = azurerm_private_endpoint.mongodb.id
 }
+
+output "observability_function_app_subnet_id" {
+  description = "ID of the Function App subnet"
+  value       = var.deploy_observability_subnets ? azurerm_subnet.observability_function_app_subnet[0].id : null
+}
+
+output "observability_private_endpoint_subnet_id" {
+  description = "ID of the Private Endpoint subnet"
+  value       = var.deploy_observability_subnets ? azurerm_subnet.observability_private_endpoint_subnet[0].id : null
+}

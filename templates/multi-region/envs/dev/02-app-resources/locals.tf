@@ -10,7 +10,7 @@ locals {
     k => "${join(".", [
       split(".", split("/", v.private_subnet_prefixes[0])[0])[0],                         # first octet
       split(".", split("/", v.private_subnet_prefixes[0])[0])[1],                         # second octet
-      tostring(tonumber(split(".", split("/", v.private_subnet_prefixes[0])[0])[2]) + 1), # incremented third octet
+      tostring(tonumber(split(".", split("/", v.private_subnet_prefixes[0])[0])[2]) + 3), # incremented third octet
       split(".", split("/", v.private_subnet_prefixes[0])[0])[3]                          # fourth octet
     ])}/${split("/", v.private_subnet_prefixes[0])[1]}"                                   # mask
   }
