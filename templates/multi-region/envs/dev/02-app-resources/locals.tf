@@ -1,7 +1,7 @@
 locals {
   environment = "dev"
 
-  // This is a custom logic to increment the third octet of the private subnet prefix
+  // This is a custom logic to increment by 3 the third octet of the private subnet prefix
   // for each region defined in the Step 1 outputs. You can adjust the logic as needed.
   // The incremented addresses will be used for the application resources.
   // Note: Ensure that the incremented addresses do not conflict with existing addresses.

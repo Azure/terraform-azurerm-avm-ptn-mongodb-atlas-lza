@@ -35,6 +35,17 @@ The pipeline automates the sequential deployment of all Terraform steps, ensurin
 - After running step 0, configure all required environment variables in your pipeline environment using the outputs from step 0. See [Setup-environment.md](Setup-environment.md) for details.
 - You must also create a GitHub environment named `dev` in your repository settings. See the [Creating a GitHub Environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments#creating-an-environment) documentation for instructions.
 
+### Migrate the Terraform state to the newly created storage account
+
+After deploying the resources with the local backend, migrate the state to the Azure backend to avoid losing track of the infrastructure.
+
+The steps to follow would be:
+
+  1. Delete the local backend block in the `terraform.tf` file in the step 0
+  1. Uncomment and update the azurerm backend block with the appropriate values
+  1. Migrate the state to the Azure backend by running: `terraform init -migrate-state`
+  1. Delete the local `terraform.tfstate` file
+
 ## Pipeline Steps
 
 1. **Environment Setup**

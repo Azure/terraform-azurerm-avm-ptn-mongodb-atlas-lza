@@ -2,7 +2,7 @@ locals {
   location    = "eastus2"
   environment = "dev"
 
-  project_name = "atlas-mongodb"
+  project_name = var.project_name
 
   vnet_address_space                             = ["10.0.0.0/16"]
   private_subnet_prefixes                        = ["10.0.1.0/24"]
@@ -15,8 +15,8 @@ locals {
     project     = local.project_name
   }
 
-  org_id                   = "your-org-id"
-  cluster_name             = "your-cluster-name"
+  org_id                   = var.org_id
+  cluster_name             = var.cluster_name
   cluster_type             = "REPLICASET"
   instance_size            = "M10"
   backup_enabled           = true
@@ -28,8 +28,8 @@ locals {
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
-  naming_suffix_base = "atlasinfrasingleregion"
+  naming_suffix_base = "infrasingregion"
 
-  mongo_atlas_client_id     = "mongo_atlas_client_id"
-  mongo_atlas_client_secret = "mongo_atlas_client_secret"
+  mongo_atlas_client_id     = var.mongo_atlas_client_id
+  mongo_atlas_client_secret = var.mongo_atlas_client_secret
 }

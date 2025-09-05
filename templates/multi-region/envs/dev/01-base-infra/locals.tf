@@ -2,22 +2,22 @@ locals {
   location    = "eastus2"
   environment = "dev"
 
-  project_name = "atlas-mongodb-multiregion"
+  project_name = var.project_name
 
   tags = {
     environment = local.environment
     project     = local.project_name
   }
 
-  org_id                   = "your-org-id"
-  cluster_name             = "your-cluster-name"
+  org_id                   = var.org_id
+  cluster_name             = var.cluster_name
   cluster_type             = "REPLICASET"
   backup_enabled           = true
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
   restore_window_days      = 4
 
-  naming_suffix_base = "atlasinframultiregion"
+  naming_suffix_base = "inframulregion"
 
   # Disclaimer: Ensure that the `instance_size` is consistent across all regions specified in `region_configs`. Refer to the official documentation for more details: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#electable_specs-1
   # Disclaimer: The `node_count` must be either 3, 5, or 7. Refer to the official documentation for more details: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster.html?utm_source=chatgpt.com#electable_nodes-1
@@ -84,6 +84,6 @@ locals {
   pair_list  = flatten([for i, a in local.vnet_keys : [for j, b in local.vnet_keys : { key = "${a}|${b}", a = a, b = b } if i < j]])
   vnet_pairs = { for p in local.pair_list : p.key => { a = p.a, b = p.b } }
 
-  mongo_atlas_client_id     = "mongo_atlas_client_id"
-  mongo_atlas_client_secret = "mongo_atlas_client_secret"
+  mongo_atlas_client_id     = var.mongo_atlas_client_id
+  mongo_atlas_client_secret = var.mongo_atlas_client_secret
 }

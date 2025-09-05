@@ -25,7 +25,7 @@ namespace MongoAtlasMetrics
         }
 
         [Function("ProcessMongoMetricsTimer")]
-        public async Task Run([TimerTrigger("0 * * * *")] TimerInfo timer)
+        public async Task Run([TimerTrigger("%FUNCTION_FREQUENCY_CRON%")] TimerInfo timer)
         {
             logger.LogInformation("Timer function triggered for MongoDB metrics processing.");
             DateTime startTime = DateTime.UtcNow;
@@ -181,9 +181,17 @@ namespace MongoAtlasMetrics
 
                 if (root.TryGetProperty("measurements", out var measurements))
                 {
+
+                    var incomingMetrics = measurements.EnumerateArray().Select(x => x.GetProperty("name").GetString() ?? "UnknownMetric").ToList();
+
+                    var processedMetricsList = ProcessMetricsList(incomingMetrics);
+
                     foreach (var measurement in measurements.EnumerateArray())
                     {
                         string metricName = measurement.GetProperty("name").GetString() ?? "UnknownMetric";
+
+                        if (processedMetricsList is not null && !processedMetricsList.Contains(metricName)) continue;
+
                         string units = measurement.GetProperty("units").GetString() ?? "units";
 
                         if (measurement.TryGetProperty("dataPoints", out var dataPoints))
@@ -212,6 +220,27 @@ namespace MongoAtlasMetrics
                 logger.LogError(ex, "Error processing MongoDB measurements.");
                 telemetryClient.TrackException(ex);
             }
+        }
+
+        public List<string>? ProcessMetricsList(List<string> incomingMetrics)
+        {
+            var includedMetrics = Environment.GetEnvironmentVariable("MONGODB_INCLUDED_METRICS")?.Split(",").Select(x => x.Trim()).ToList();
+
+            if (includedMetrics is not null && includedMetrics.Count > 0)
+            {
+                var matchedExistingMetrics = incomingMetrics.Where(includedMetrics.Contains).ToList();
+                return matchedExistingMetrics.Count == 0 ? null : matchedExistingMetrics;
+            }
+
+            var excludedMetrics = Environment.GetEnvironmentVariable("MONGODB_EXCLUDED_METRICS")?.Split(",").Select(x => x.Trim()).ToList();
+
+            if (excludedMetrics is not null && excludedMetrics.Count > 0)
+            {
+                var removedExcludedMetrics = incomingMetrics.Where(x => !excludedMetrics.Contains(x)).ToList();
+                return removedExcludedMetrics.Count == 0 ? null : removedExcludedMetrics;
+            }
+
+            return null;
         }
 
         public async Task<string> GetMongoAccessToken()

@@ -1,3 +1,6 @@
+data "azurerm_client_config" "current" {
+}
+
 module "devops" {
   source = "../../../../../modules/devops"
 

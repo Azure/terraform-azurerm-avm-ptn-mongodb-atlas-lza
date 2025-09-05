@@ -73,4 +73,5 @@ module "observability" {
   vnet_id                         = module.network.vnet_id
   vnet_name                       = module.network.vnet_name
   private_endpoint_subnet_id      = module.network.observability_private_endpoint_subnet_id
+  function_frequency_cron         = var.function_frequency_cron
 }

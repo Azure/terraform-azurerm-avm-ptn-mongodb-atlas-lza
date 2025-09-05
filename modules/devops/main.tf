@@ -7,12 +7,23 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = var.location
-  account_tier             = var.account_tier
-  account_replication_type = var.replication_type
-  tags                     = var.tags
+  name                            = var.storage_account_name
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = var.location
+  account_tier                    = var.account_tier
+  account_replication_type        = var.replication_type
+  tags                            = var.tags
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+
+    versioning_enabled = true
+  }
+
+  infrastructure_encryption_enabled = true
 }
 
 resource "azurerm_storage_container" "container" {

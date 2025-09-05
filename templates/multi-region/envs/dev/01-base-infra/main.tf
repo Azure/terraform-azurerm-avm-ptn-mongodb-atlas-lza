@@ -91,4 +91,5 @@ module "observability" {
   vnet_id                         = module.network["eastus"].vnet_id
   vnet_name                       = module.network["eastus"].vnet_name
   private_endpoint_subnet_id      = module.network["eastus"].observability_private_endpoint_subnet_id
+  function_frequency_cron         = var.function_frequency_cron
 }

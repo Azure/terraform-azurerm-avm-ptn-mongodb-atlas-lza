@@ -9,6 +9,7 @@ This document describes the required environment variables, prerequisites, and s
 - [Variable Overview](#variable-overview)
 - [Setting Environment Variables Locally](#setting-environment-variables-locally)
 - [Pipeline / CI Setup](#pipeline--ci-setup)
+- [Terraform version](#terraform-version)
 - [Additional Notes](#additional-notes)
 
 ---
@@ -67,6 +68,9 @@ In this environment, set the following:
 - **Secrets:**
   - `MONGODB_ATLAS_PUBLIC_KEY` (Atlas public API key)
   - `MONGODB_ATLAS_PRIVATE_KEY` (Atlas private API key)
+  - `TF_VAR_MONGO_ATLAS_CLIENT_ID` (Atlas client ID)
+  - `TF_VAR_MONGO_ATLAS_CLIENT_SECRET` (Atlas client secret)
+  - `TF_VAR_ORG_ID` (Atlas org ID)
 - **Variables:**
   - `ARM_CLIENT_ID`
   - `ARM_SUBSCRIPTION_ID`
@@ -74,6 +78,27 @@ In this environment, set the following:
   - `BACKEND_CONTAINER` (from the `container_name` output of step 00-devops)
   - `BACKEND_RG` (from the `resource_group_name` output of step 00-devops)
   - `BACKEND_STORAGE_ACCOUNT` (from the `storage_account_name` output of step 00-devops)
+  - `TF_VAR_PROJECT_NAME` (Atlas project name)
+  - `TF_VAR_CLUSTER_NAME` (Atlas cluster name)
+  #### The variables below are optional, just in case you want to deploy the test db connection app.
+  - `TF_VAR_resource_group_name_tfstate_01` (Name of Resource Group for TF state)
+  - `TF_VAR_storage_account_name_tfstate_01` (Name of Storage Account for TF state)
+  - `TF_VAR_container_name_tfstate_01` (Name of Container for TF state)
+  - `TF_VAR_key_name_tfstate_01` (Name of Key for TF state)
+
+---
+
+## Terraform version
+
+Terraform version is pinned in `.terraform-version`:
+- Local devs: install `tfenv` or `asdf` for automatic switching.
+- Pipelines: read `.terraform-version` dynamically.
+- `terraform.tf` required_version is auto-synced from `.terraform-version`.
+
+To upgrade:
+1. Update `.terraform-version`
+2. Pipelines and local devs will automatically use the new version.
+3. `terraform.tf` is updated automatically during CI/CD.
 
 ---
 

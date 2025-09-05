@@ -17,9 +17,9 @@ Before running this step, you need to:
    * Ensure the `github_organization_name`, `github_repository_name`, `email_address` and `environment` fields are properly configured in `locals.tf`.
    * Verify the `permissions` and `federation` settings align with your organization's requirements.
 
-2. **Update the `terraform.tf` file**:
+2. **Set azure subscription id env variable**:
 
-   * Ensure the `subscription_id` is correctly set in the provider block.
+   * Set `ARM_SUBSCRIPTION_ID` environment variable locally with the azure subscription id value.
 
 ## How to Deploy
 

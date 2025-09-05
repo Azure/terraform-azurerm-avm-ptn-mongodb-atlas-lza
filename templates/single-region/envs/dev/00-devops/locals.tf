@@ -7,11 +7,11 @@ locals {
   account_tier     = "Standard"
   replication_type = "ZRS"
   container_name   = "tfstate"
-  subscription_id  = "{your-azure-subscription-id}" # Replace with your actual subscription ID
+  subscription_id  = data.azurerm_client_config.current.subscription_id
 
   # Identity
-  github_organization_name = "{your-github-org}"      # Replace with your GitHub org
-  github_repository_name   = "{your-repository-name}" # Replace with your GitHub repository name
+  github_organization_name = var.github_organization_name
+  github_repository_name   = var.github_repository_name
   environment              = "dev"
 
   audiences = ["api://AzureADTokenExchange"]
@@ -37,10 +37,10 @@ locals {
   # If set to true, ensure the organization_name, first_name, last_name, and email_address fields are properly configured.
   should_create_mongo_org = true
 
-  organization_name = "your-org"
-  first_name        = "tester"
-  last_name         = "tester"
-  email_address     = "tester@example.com"
+  organization_name = var.mongodb_atlas_organization_name
+  first_name        = var.first_name
+  last_name         = var.last_name
+  email_address     = var.email_address
   publisher_id      = "mongodb"
   offer_id          = "mongodb_atlas_azure_native_prod"
   plan_id           = "azure_native"

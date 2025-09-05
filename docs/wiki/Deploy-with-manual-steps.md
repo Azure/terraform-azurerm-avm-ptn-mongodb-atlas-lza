@@ -31,6 +31,7 @@ This guide provides a clear, step-by-step process for deploying infrastructure a
 
 1. **Step 00: DevOps (Mandatory, Always Manual)**
    - Sets up the Terraform backend and core identity.
+   - Migrates the local state to a storage account to handle the terraform state in the cloud
    - Optionally, creates the MongoDB Atlas Organization (via Marketplace).
    - Outputs are required for all subsequent steps.
    - **Navigate to the correct path for your deployment type before running this step.**
@@ -75,7 +76,8 @@ You can choose whether to have Terraform create a MongoDB Atlas Organization for
 
 **Preparation:**
 
-- Update `locals.tf` in `envs/dev/00-devops/` (inside the respective single-region or multi-region folder) to set the correct values for `subscription_id`, `github_organization_name`, `github_repository_name`, and the rest of variables before running this step. This ensures resources are created in the intended Azure subscription.
+- Set `ARM_SUBSCRIPTION_ID` environment variable locally with the azure subscription id value.
+- Update `locals.tf` in `envs/dev/00-devops/` (inside the respective single-region or multi-region folder) to set the correct values for `github_organization_name`, `github_repository_name`, and the rest of variables before running this step. This ensures resources are created in the intended Azure subscription.
 
 Navigate to `envs/dev/00-devops/` and run:
 
@@ -85,6 +87,17 @@ terraform plan
 # Review the plan output carefully
 terraform apply -auto-approve
 ```
+
+#### Migrate the Terraform state to the newly created storage account
+
+After deploying the resources with the local backend, migrate the state to the Azure backend to avoid losing track of the infrastructure.
+
+The steps to follow would be:
+
+  1. Delete the local backend block in the `terraform.tf` file in the step 0
+  1. Uncomment and update the azurerm backend block with the appropriate values
+  1. Migrate the state to the Azure backend by running: `terraform init -migrate-state`
+  1. Delete the local `terraform.tfstate` file
 
 **Important Notes:**
 

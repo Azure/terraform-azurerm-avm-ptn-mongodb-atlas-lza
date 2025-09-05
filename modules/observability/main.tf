@@ -69,6 +69,9 @@ resource "azurerm_function_app_flex_consumption" "observability_function" {
     "MONGODB_GROUP_NAME"                    = var.mongo_group_name
     "AzureWebJobsStorage"                   = azurerm_storage_account.observability_function_storage.primary_connection_string
     "FUNCTIONS_EXTENSION_VERSION"           = "~4"
+    "FUNCTION_FREQUENCY_CRON"               = var.function_frequency_cron
+    "MONGODB_INCLUDED_METRICS"              = var.mongodb_included_metrics
+    "MONGODB_EXCLUDED_METRICS"              = var.mongodb_excluded_metrics
   }
 
   identity {
