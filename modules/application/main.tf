@@ -1,17 +1,12 @@
-resource "azurerm_resource_group" "application_rg" {
-  name     = var.resource_group_name
-  location = var.location
-  tags     = var.tags
-}
-
 resource "azurerm_service_plan" "application_service_plan" {
   name                = var.app_service_plan_name
-  resource_group_name = azurerm_resource_group.application_rg.name
-  location            = azurerm_resource_group.application_rg.location
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   # Has to be greater than or equal to B1 to support VNet integration
   sku_name = var.app_service_plan_sku
   os_type  = "Windows"
+  tags     = var.tags
 }
 
 resource "azurerm_subnet" "application_subnet" {
@@ -37,7 +32,7 @@ resource "azurerm_subnet" "application_subnet" {
 
 resource "azurerm_windows_web_app" "app_web_app" {
   name                = var.app_web_app_name
-  resource_group_name = azurerm_resource_group.application_rg.name
+  resource_group_name = var.resource_group_name
   location            = azurerm_service_plan.application_service_plan.location
   service_plan_id     = azurerm_service_plan.application_service_plan.id
 

@@ -1,14 +1,11 @@
-variable "tags" {
-  type        = map(string)
-  description = "A map of tags to be applied to resources"
-}
-
 variable "resource_group_name" {
-  type = string
+  type        = string
+  description = "Name of the resource group where the web app will be created"
 }
 
 variable "location" {
-  type = string
+  type        = string
+  description = "Azure region where the resources will be created"
 }
 
 variable "app_service_plan_name" {
@@ -47,4 +44,9 @@ variable "subnet_name" {
 variable "vnet_resource_group_name" {
   type        = string
   description = "Name of the resource group where the Virtual Network is located"
+}
+
+variable "tags" {
+  type        = map(string)
+  description = "A map of tags to be applied to the web app"
 }

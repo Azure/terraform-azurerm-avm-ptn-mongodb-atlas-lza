@@ -15,13 +15,23 @@ on:
       - 'modules/**'
   workflow_dispatch:
     inputs:
+      plan_base_infra:
+        description: 'Run TF plan for base infrastructure'
+        required: false
+        default: false
+        type: boolean
       apply_base_infra:
-        description: 'Applies the plan for base infrastructure'
-        required: true
+        description: 'Run TF plan and applies the plan for base infrastructure'
+        required: false
+        default: false
+        type: boolean
+      plan_test_db_app:
+        description: 'Run TF plan for test application infrastructure (Optional)'
+        required: false
         default: false
         type: boolean
       deploy_test_db_app:
-        description: 'Deploy test application infrastructure (Optional)'
+        description: 'Run TF plan and applies test application infrastructure (Optional)'
         required: false
         default: false
         type: boolean
@@ -30,6 +40,7 @@ permissions:
   contents: read
   id-token: write
   pull-requests: write
+  issues: write
 
 jobs:
   changes:
@@ -38,8 +49,15 @@ jobs:
       base_infra: ${{ steps.changes.outputs.base_infra }}
       application: ${{ steps.changes.outputs.application }}
       modules: ${{ steps.changes.outputs.modules }}
+      tf_version: ${{ steps.read_tf.outputs.tf_version }}
     steps:
       - uses: actions/checkout@v4
+      - name: Read Terraform version
+        id: read_tf
+        run: |
+          TF_VERSION=$(cat .terraform-version)
+          echo "TF_VERSION=$TF_VERSION" >> $GITHUB_ENV
+          echo "tf_version=$TF_VERSION" >> $GITHUB_OUTPUT
       - uses: dorny/paths-filter@v2
         id: changes
         with:
@@ -55,10 +73,10 @@ jobs:
     name: base-infra-dev
     needs: [changes]
     if: >-
-      ${{ inputs.apply_base_infra == true || needs.changes.outputs.base_infra == 'true' || needs.changes.outputs.modules == 'true' }}
+      ${{ inputs.plan_base_infra == true || inputs.apply_base_infra == true || needs.changes.outputs.base_infra == 'true' || needs.changes.outputs.modules == 'true' }}
     uses: ./.github/workflows/ci-cd-infra-base.yml
     with:
-      tf_version: latest
+      tf_version: ${{ needs.changes.outputs.tf_version }}
       working_directory: templates/single-region/envs/dev/01-base-infra
       environment: dev
       area: 01-base-infra
@@ -67,11 +85,11 @@ jobs:
 
   application-dev:
     name: application-dev
-    if: ${{ always() }}
+    if: ${{ always() && (inputs.plan_test_db_app || inputs.deploy_test_db_app) }}
     needs: [changes, base-infra-dev]
     uses: ./.github/workflows/ci-cd-infra-base.yml
     with:
-      tf_version: latest
+      tf_version: ${{ needs.changes.outputs.tf_version }}
       working_directory: templates/single-region/envs/dev/02-app-resources
       environment: dev
       area: 02-application

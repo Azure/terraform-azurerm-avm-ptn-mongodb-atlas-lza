@@ -92,11 +92,9 @@ The backup feature is enabled by default (`backup_enabled = true`). It ensures t
 ## Outputs
 
 - **vnet_name**: Name of the virtual network created.
-- **resource_group_name**: Name of the Resource Group for infrastructure resources.
 - **cluster_id**: ID of the MongoDB Atlas cluster.
 - **project_name**: Name of the MongoDB Atlas project.
 - **mongodb_project_id**: ID of the MongoDB Atlas project.
 - **privatelink_id**: ID of the private link created for MongoDB Atlas.
 - **atlas_pe_service_id**: ID of the Atlas private endpoint service.
 - **atlas_privatelink_endpoint_id**: ID of the Atlas private link endpoint.
-- **infra_resource_group_name**: Name of the infrastructure Resource Group.

@@ -1,9 +1,3 @@
-resource "azurerm_resource_group" "infrastructure_rg" {
-  name     = module.naming.resource_group.name_unique
-  location = local.location
-}
-
-
 module "mongodb_atlas_config" {
   source                   = "../../../../../modules/atlas_config_multi_region"
   org_id                   = local.org_id
@@ -24,7 +18,7 @@ module "network" {
   for_each                        = local.regions
   source                          = "../../../../../modules/network"
   location                        = each.value.location
-  resource_group_name             = azurerm_resource_group.infrastructure_rg.name
+  resource_group_name             = data.azurerm_resource_group.infrastructure_rg.name
   vnet_name                       = "${module.naming.virtual_network.name_unique}-${each.key}"
   private_subnet_name             = "${module.naming.subnet.name_unique}-${each.key}"
   public_ip_name                  = "${module.naming.public_ip.name_unique}-${each.key}"
@@ -58,8 +52,8 @@ module "vnet_peerings" {
   name_this_to_peer = "${each.value.a}-to-${each.value.b}"
   name_peer_to_this = "${each.value.b}-to-${each.value.a}"
 
-  resource_group_name_this = azurerm_resource_group.infrastructure_rg.name
-  resource_group_name_peer = azurerm_resource_group.infrastructure_rg.name
+  resource_group_name_this = data.azurerm_resource_group.infrastructure_rg.name
+  resource_group_name_peer = data.azurerm_resource_group.infrastructure_rg.name
 
   vnet_name_this = module.network[each.value.a].vnet_name
   vnet_name_peer = module.network[each.value.b].vnet_name
@@ -73,7 +67,7 @@ module "vnet_peerings" {
 
 module "observability" {
   source                          = "../../../../../modules/observability"
-  resource_group_name             = azurerm_resource_group.infrastructure_rg.name
+  resource_group_name             = data.azurerm_resource_group.infrastructure_rg.name
   location                        = local.regions["eastus"].location
   app_insights_name               = module.naming.application_insights.name_unique
   function_app_name               = module.naming.function_app.name_unique
@@ -92,4 +86,8 @@ module "observability" {
   vnet_name                       = module.network["eastus"].vnet_name
   private_endpoint_subnet_id      = module.network["eastus"].observability_private_endpoint_subnet_id
   function_frequency_cron         = var.function_frequency_cron
+}
+
+data "azurerm_resource_group" "infrastructure_rg" {
+  name = data.terraform_remote_state.devops.outputs.resource_group_names.infrastructure
 }

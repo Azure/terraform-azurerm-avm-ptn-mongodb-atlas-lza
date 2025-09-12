@@ -1,5 +1,4 @@
 locals {
-  location    = "eastus2"
   environment = "dev"
 
   project_name = var.project_name
@@ -27,19 +26,19 @@ locals {
       atlas_region                                   = "US_EAST"
       azure_region                                   = "eastus"
       priority                                       = 7
-      address_space                                  = ["10.0.0.0/16"]
-      private_subnet_prefixes                        = ["10.0.1.0/24"]
+      address_space                                  = ["10.0.0.0/26"]
+      private_subnet_prefixes                        = ["10.0.0.0/29"]
       deploy_observability_subnets                   = true
-      observability_function_app_subnet_prefixes     = ["10.0.2.0/24"]
-      observability_private_endpoint_subnet_prefixes = ["10.0.3.0/24"]
+      observability_function_app_subnet_prefixes     = ["10.0.0.8/29"]
+      observability_private_endpoint_subnet_prefixes = ["10.0.0.16/28"]
       node_count                                     = 2
     }
     eastus2 = {
       atlas_region                 = "US_EAST_2"
       azure_region                 = "eastus2"
       priority                     = 6
-      address_space                = ["10.1.0.0/16"]
-      private_subnet_prefixes      = ["10.1.1.0/24"]
+      address_space                = ["10.0.0.64/28"]
+      private_subnet_prefixes      = ["10.0.0.64/29"]
       deploy_observability_subnets = false
       node_count                   = 2
     }
@@ -47,8 +46,8 @@ locals {
       atlas_region                 = "US_WEST"
       azure_region                 = "westus"
       priority                     = 5
-      address_space                = ["10.2.0.0/16"]
-      private_subnet_prefixes      = ["10.2.1.0/24"]
+      address_space                = ["10.0.0.80/28"]
+      private_subnet_prefixes      = ["10.0.0.80/29"]
       deploy_observability_subnets = false
       node_count                   = 1
     }

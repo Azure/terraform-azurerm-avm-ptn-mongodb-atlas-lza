@@ -1,7 +1,3 @@
-output "resource_group_name" {
-  value = azurerm_resource_group.infrastructure_rg.name
-}
-
 output "cluster_id" {
   value = module.mongodb_atlas_config.cluster_id
 }
@@ -24,10 +20,6 @@ output "atlas_pe_service_ids" {
 
 output "atlas_privatelink_endpoint_ids" {
   value = module.mongodb_atlas_config.atlas_privatelink_endpoint_ids
-}
-
-output "infra_resource_group_name" {
-  value = azurerm_resource_group.infrastructure_rg.name
 }
 
 output "vnet_names" {

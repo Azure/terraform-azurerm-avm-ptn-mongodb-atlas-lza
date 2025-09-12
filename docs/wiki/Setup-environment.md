@@ -75,16 +75,14 @@ In this environment, set the following:
   - `ARM_CLIENT_ID`
   - `ARM_SUBSCRIPTION_ID`
   - `ARM_TENANT_ID`
-  - `BACKEND_CONTAINER` (from the `container_name` output of step 00-devops)
-  - `BACKEND_RG` (from the `resource_group_name` output of step 00-devops)
-  - `BACKEND_STORAGE_ACCOUNT` (from the `storage_account_name` output of step 00-devops)
   - `TF_VAR_PROJECT_NAME` (Atlas project name)
   - `TF_VAR_CLUSTER_NAME` (Atlas cluster name)
-  #### The variables below are optional, just in case you want to deploy the test db connection app.
-  - `TF_VAR_resource_group_name_tfstate_01` (Name of Resource Group for TF state)
-  - `TF_VAR_storage_account_name_tfstate_01` (Name of Storage Account for TF state)
-  - `TF_VAR_container_name_tfstate_01` (Name of Container for TF state)
-  - `TF_VAR_key_name_tfstate_01` (Name of Key for TF state)
+  - `TF_VAR_resource_group_name_tfstate` (Name of Resource Group for TF state)
+  - `TF_VAR_storage_account_name_tfstate` (Name of Storage Account for TF state)
+  - `TF_VAR_container_name_tfstate` (Name of Container for TF state)
+  - `TF_VAR_key_name_tfstate` (Name of devops' TF state key)
+  #### The variable below is optional, just in case you want to deploy the test db connection app.
+  - `TF_VAR_key_name_infra_tfstate` (Name of Key for Infra's TF state)
 
 ---
 

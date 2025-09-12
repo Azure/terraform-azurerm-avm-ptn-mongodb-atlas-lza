@@ -5,7 +5,7 @@ on:
     inputs:
       tf_version:
         type: string
-        default: latest
+        required: true
       working_directory:
         type: string
         required: true
@@ -25,17 +25,6 @@ on:
         type: boolean
         default: false
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  ARM_CLIENT_ID: ${{ vars.ARM_CLIENT_ID }}
-  ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
-  ARM_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
-  BACKEND_RG: ${{ vars.BACKEND_RG }}
-  BACKEND_STORAGE_ACCOUNT: ${{ vars.BACKEND_STORAGE_ACCOUNT }}
-  BACKEND_CONTAINER: ${{ vars.BACKEND_CONTAINER }}
-  MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
-  MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
-
 jobs:
   validate:
     name: Validate
@@ -45,14 +34,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set TF version
-        run: |
-          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ inputs.tf_version }}
 
       - name: Terraform format
         id: fmt
@@ -69,7 +54,7 @@ jobs:
           commenter_type: fmt
           commenter_input: ${{ format('{0}{1}', steps.fmt.outputs.stdout, steps.fmt.outputs.stderr) }}
           commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
-      
+
       - name: Cache plugin dir
         uses: actions/cache@v4
         with:
@@ -91,13 +76,10 @@ jobs:
 
       - name: Run TFLint
         run: tflint --recursive -f compact
-
+      
       - name: Checkov GitHub Action
         id: checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          config_file: .checkov.yml
-          github_pat: ${{ secrets.GH_PAT }}
+        uses: bridgecrewio/checkov-action@v10
 
   plan:
     name: Plan
@@ -114,32 +96,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set TF version
-        run: |
-          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ inputs.tf_version }}
 
       - name: 'Azure CLI login'
         uses: azure/login@v2.1.0
         with:
-          client-id: ${{ env.ARM_CLIENT_ID }}
-          tenant-id: ${{ env.ARM_TENANT_ID }}
-          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           allow-no-subscriptions: false
 
       - name: Write backend config file
         run: |
           cat > backend.tfbackend <<EOF
-          resource_group_name  = "${{ env.BACKEND_RG }}"
-          storage_account_name = "${{ env.BACKEND_STORAGE_ACCOUNT }}"
-          container_name       = "${{ env.BACKEND_CONTAINER }}"
+          resource_group_name  = "${{ env.TF_VAR_resource_group_name_tfstate }}"
+          storage_account_name = "${{ env.TF_VAR_storage_account_name_tfstate }}"
+          container_name       = "${{ env.TF_VAR_container_name_tfstate }}"
           key                  = "${{ inputs.area }}.tfstate"
           use_oidc             = true
           EOF
+        env:
+          TF_VAR_resource_group_name_tfstate: ${{ vars.TF_VAR_resource_group_name_tfstate }}
+          TF_VAR_storage_account_name_tfstate: ${{ vars.TF_VAR_storage_account_name_tfstate }}
+          TF_VAR_container_name_tfstate: ${{ vars.TF_VAR_container_name_tfstate }}
 
       - name: Terraform init
         run: terraform init -backend-config=backend.tfbackend
@@ -165,8 +147,19 @@ jobs:
           set -o pipefail
           terraform plan -no-color -input=false -out=$TF_PLAN_NAME |& tee tf_plan_command.output
         env:
+          ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
           MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
           MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
+          TF_VAR_resource_group_name_tfstate: ${{ vars.TF_VAR_resource_group_name_tfstate }}
+          TF_VAR_storage_account_name_tfstate: ${{ vars.TF_VAR_storage_account_name_tfstate }}
+          TF_VAR_container_name_tfstate: ${{ vars.TF_VAR_container_name_tfstate }}
+          TF_VAR_mongo_atlas_client_id: ${{ secrets.TF_VAR_mongo_atlas_client_id }}
+          TF_VAR_mongo_atlas_client_secret: ${{ secrets.TF_VAR_mongo_atlas_client_secret }}
+          TF_VAR_org_id: ${{ secrets.TF_VAR_org_id }}
+          TF_VAR_cluster_name: ${{ vars.TF_VAR_cluster_name }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_key_name_tfstate: ${{ vars.TF_VAR_key_name_tfstate }}
+          TF_VAR_key_name_infra_tfstate: ${{ vars.TF_VAR_key_name_infra_tfstate }}
 
       - name: Post plan comment
         uses: GetTerminus/terraform-pr-commenter@v3.0.3
@@ -188,10 +181,28 @@ jobs:
       - name: Parse terraform plan to JSON
         run: terraform show -json $TF_PLAN_NAME > $TF_PLAN_NAME.json
 
+  manual-approval:
+    name: Manual Approval
+    runs-on: ubuntu-latest
+    needs: [validate, plan]
+    if: ${{ success() && inputs.apply_changes == true }}
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Await Manual Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: githubUsername1,githubUsername2 # replace with actual GitHub usernames
+          minimum-approvals: 1
+          issue-title: "Manual Approval Required for Terraform Apply"
+          issue-body: "Please approve or deny the deployment."
+
   apply:
     name: Apply
-    if: ${{ inputs.apply_changes == true || (inputs.environment != 'prod' && github.event_name == 'push' && inputs.area != 'application')}}
-    needs: [validate, plan]
+    needs: [validate, plan, manual-approval]
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     defaults:
@@ -199,29 +210,22 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
     env:
       TF_PLAN_NAME: ${{ needs.plan.outputs.tf_plan_name }}
-      BACKEND_RG: ${{ vars.BACKEND_RG }}
-      BACKEND_STORAGE_ACCOUNT: ${{ vars.BACKEND_STORAGE_ACCOUNT }}
-      BACKEND_CONTAINER: ${{ vars.BACKEND_CONTAINER }}
 
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v4
 
-      - name: Set TF version
-        run: |
-          echo "TF_VERSION=${{ inputs.tf_version }}" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: ${{ inputs.tf_version }}
 
       - name: 'Azure CLI login'
         uses: azure/login@v2.1.0
         with:
-          client-id: ${{ env.ARM_CLIENT_ID }}
-          tenant-id: ${{ env.ARM_TENANT_ID }}
-          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           allow-no-subscriptions: false
 
       - name: Download a single artifact
@@ -233,12 +237,16 @@ jobs:
       - name: Write backend config file
         run: |
           cat > backend.tfbackend <<EOF
-          resource_group_name  = "${{ env.BACKEND_RG }}"
-          storage_account_name = "${{ env.BACKEND_STORAGE_ACCOUNT }}"
-          container_name       = "${{ env.BACKEND_CONTAINER }}"
+          resource_group_name  = "${{ env.TF_VAR_resource_group_name_tfstate }}"
+          storage_account_name = "${{ env.TF_VAR_storage_account_name_tfstate }}"
+          container_name       = "${{ env.TF_VAR_container_name_tfstate }}"
           key                  = "${{ inputs.area }}.tfstate"
           use_oidc             = true
           EOF
+        env:
+          TF_VAR_resource_group_name_tfstate: ${{ vars.TF_VAR_resource_group_name_tfstate }}
+          TF_VAR_storage_account_name_tfstate: ${{ vars.TF_VAR_storage_account_name_tfstate }}
+          TF_VAR_container_name_tfstate: ${{ vars.TF_VAR_container_name_tfstate }}
       
       - name: Terraform init
         run: terraform init -backend-config=backend.tfbackend
@@ -246,5 +254,16 @@ jobs:
       - name: Terraform apply
         run: terraform apply -auto-approve ${{ env.TF_PLAN_NAME }}
         env:
+          ARM_SUBSCRIPTION_ID: ${{ vars.ARM_SUBSCRIPTION_ID }}
           MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
           MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
+          TF_VAR_mongo_atlas_client_id: ${{ secrets.TF_VAR_mongo_atlas_client_id }}
+          TF_VAR_mongo_atlas_client_secret: ${{ secrets.TF_VAR_mongo_atlas_client_secret }}
+          TF_VAR_org_id: ${{ secrets.TF_VAR_org_id }}
+          TF_VAR_cluster_name: ${{ vars.TF_VAR_cluster_name }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_project_name }}
+          TF_VAR_resource_group_name_tfstate: ${{ vars.TF_VAR_resource_group_name_tfstate }}
+          TF_VAR_storage_account_name_tfstate: ${{ vars.TF_VAR_storage_account_name_tfstate }}
+          TF_VAR_container_name_tfstate: ${{ vars.TF_VAR_container_name_tfstate }}
+          TF_VAR_key_name_tfstate: ${{ vars.TF_VAR_key_name_tfstate }}
+          TF_VAR_key_name_infra_tfstate: ${{ vars.TF_VAR_key_name_infra_tfstate }}

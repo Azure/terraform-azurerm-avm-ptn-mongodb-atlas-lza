@@ -8,17 +8,18 @@ module "devops" {
   location = local.location
   tags     = local.tags
 
-  # Resource group
-  resource_group_name = module.naming.resource_group.name
+  # Resource groups
+  resource_group_name_devops         = module.devops_naming.resource_group.name
+  resource_group_name_infrastructure = module.infrastructure_naming.resource_group.name
+  resource_group_name_app            = module.application_naming.resource_group.name
 
   # Identity
-  audiences   = local.audiences
-  issuer      = local.issuer
-  permissions = local.permissions
-  federation  = local.federation
+  audiences  = local.audiences
+  issuer     = local.issuer
+  federation = local.federation
 
   # Storage Account
-  storage_account_name = module.naming.storage_account.name_unique
+  storage_account_name = module.devops_naming.storage_account.name_unique
   replication_type     = local.replication_type
   account_tier         = local.account_tier
   container_name       = local.container_name

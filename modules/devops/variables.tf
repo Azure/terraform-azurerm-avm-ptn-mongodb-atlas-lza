@@ -3,8 +3,20 @@ variable "tags" {
   description = "A map of tags to be applied to resources"
 }
 
-variable "resource_group_name" {
-  type = string
+variable "resource_group_name_devops" {
+  type        = string
+  description = "The name of the DevOps resource group"
+}
+
+variable "resource_group_name_app" {
+  type        = string
+  default     = ""
+  description = "(Optional) The name of the application resource group. If not provided, the application resource group will not be created."
+}
+
+variable "resource_group_name_infrastructure" {
+  type        = string
+  description = "The name of the infrastructure resource group"
 }
 
 variable "location" {
@@ -42,13 +54,6 @@ variable "audiences" {
 
 variable "issuer" {
   type = string
-}
-
-variable "permissions" {
-  type = map(object({
-    subscription_id = string
-    role            = string
-  }))
 }
 
 variable "federation" {

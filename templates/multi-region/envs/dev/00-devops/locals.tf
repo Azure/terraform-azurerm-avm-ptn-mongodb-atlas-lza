@@ -1,7 +1,6 @@
 locals {
   # Common
   location = "eastus2"
-  suffix   = "devops"
 
   # Storage Account
   account_tier     = "Standard"
@@ -16,11 +15,6 @@ locals {
 
   audiences = ["api://AzureADTokenExchange"]
   issuer    = "https://token.actions.githubusercontent.com"
-
-  permissions = {
-    contributor_permission = { subscription_id = local.subscription_id, role = "Contributor" },
-    uaa_permission         = { subscription_id = local.subscription_id, role = "User Access Administrator" }
-  }
 
   federation = {
     federated_identity_name = "${lower(local.github_organization_name)}-${lower(local.github_repository_name)}-env-${lower(local.environment)}",

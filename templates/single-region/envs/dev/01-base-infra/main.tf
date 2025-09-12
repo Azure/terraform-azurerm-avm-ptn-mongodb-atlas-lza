@@ -1,9 +1,3 @@
-resource "azurerm_resource_group" "infrastructure_rg" {
-  name     = module.naming.resource_group.name_unique
-  location = local.location
-}
-
-
 module "mongodb_atlas_config" {
   source                   = "../../../../../modules/atlas_config_single_region"
   org_id                   = local.org_id
@@ -27,7 +21,7 @@ module "mongodb_atlas_config" {
 module "network" {
   source                                         = "../../../../../modules/network"
   location                                       = local.location
-  resource_group_name                            = azurerm_resource_group.infrastructure_rg.name
+  resource_group_name                            = data.azurerm_resource_group.infrastructure_rg.name
   vnet_name                                      = module.naming.virtual_network.name
   address_space                                  = local.vnet_address_space
   private_subnet_name                            = module.naming.subnet.name_unique
@@ -55,7 +49,7 @@ module "network" {
 
 module "observability" {
   source                          = "../../../../../modules/observability"
-  resource_group_name             = azurerm_resource_group.infrastructure_rg.name
+  resource_group_name             = data.azurerm_resource_group.infrastructure_rg.name
   location                        = local.location
   app_insights_name               = module.naming.application_insights.name_unique
   function_app_name               = module.naming.function_app.name_unique
@@ -74,4 +68,8 @@ module "observability" {
   vnet_name                       = module.network.vnet_name
   private_endpoint_subnet_id      = module.network.observability_private_endpoint_subnet_id
   function_frequency_cron         = var.function_frequency_cron
+}
+
+data "azurerm_resource_group" "infrastructure_rg" {
+  name = data.terraform_remote_state.devops.outputs.resource_group_names.infrastructure
 }

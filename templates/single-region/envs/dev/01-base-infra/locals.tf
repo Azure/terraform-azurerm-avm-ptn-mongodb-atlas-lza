@@ -4,14 +4,13 @@ locals {
 
   project_name = var.project_name
 
-  vnet_address_space                             = ["10.0.0.0/16"]
-  private_subnet_prefixes                        = ["10.0.1.0/24"]
-  observability_function_app_subnet_prefixes     = ["10.0.2.0/24"]
-  observability_private_endpoint_subnet_prefixes = ["10.0.3.0/24"]
+  vnet_address_space                             = ["10.0.0.0/26"]
+  private_subnet_prefixes                        = ["10.0.0.0/29"]
+  observability_function_app_subnet_prefixes     = ["10.0.0.8/29"]
+  observability_private_endpoint_subnet_prefixes = ["10.0.0.16/28"]
 
   tags = {
     environment = local.environment
-    location    = local.location
     project     = local.project_name
   }
 
@@ -27,8 +26,6 @@ locals {
   reference_hour_of_day    = 3
   reference_minute_of_hour = 45
   restore_window_days      = 4
-
-  naming_suffix_base = "infrasingregion"
 
   mongo_atlas_client_id     = var.mongo_atlas_client_id
   mongo_atlas_client_secret = var.mongo_atlas_client_secret
