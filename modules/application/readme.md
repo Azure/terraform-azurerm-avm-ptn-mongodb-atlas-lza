@@ -6,7 +6,6 @@ This module creates Azure resources including App Service Plan, Web App, and ass
 
 ## Features
 
-- Creates Azure Resource Group for application resources
 - Provisions App Service Plan with Windows OS support
 - Creates application subnet within specified Virtual Network
 - Deploys Windows Web Apps with VNet integration
@@ -18,14 +17,15 @@ This module creates Azure resources including App Service Plan, Web App, and ass
 module "application" {
   source = "./modules/application"
 
-  resource_group_name    = "rg-myapp-dev"
+  resource_group_name   = "rg-myapp-dev"
   location              = "East US"
   app_service_plan_name = "asp-myapp-dev"
   app_service_plan_sku  = "B1"
 
-  virtual_network_name  = "vnet-myapp-dev"
-  subnet_name           = "snet-app-dev"
-  address_prefixes      = ["10.0.1.0/24"]
+  virtual_network_name     = "vnet-myapp-dev"
+  subnet_name              = "snet-app-dev"
+  address_prefixes         = ["10.0.1.0/24"]
+  vnet_resource_group_name = "rg-infra-dev"
 
   app_web_app_name      = "webapp-myapp-dev"
 
@@ -38,17 +38,18 @@ module "application" {
 
 ## Inputs
 
-| Name                    | Description                                                  | Type           |
-| ----------------------- | ------------------------------------------------------------ | -------------- |
-| `resource_group_name`   | Name of the resource group to create                         | `string`       |
-| `location`              | Azure region where resources will be deployed                | `string`       |
-| `app_service_plan_name` | Name of the App Service Plan                                 | `string`       |
-| `app_service_plan_sku`  | SKU for App Service Plan (B1 or higher for VNet integration) | `string`       |
-| `virtual_network_name`  | Name of the existing Virtual Network                         | `string`       |
-| `subnet_name`           | Name of the subnet to create for App Service integration     | `string`       |
-| `address_prefixes`      | Address prefixes for the application subnet                  | `list(string)` |
-| `app_web_app_name`      | Name of the main web application                             | `string`       |
-| `tags`                  | Tags to apply to all resources                               | `map(string)`  |
+| Name                       | Description                                                         | Type           |
+| -------------------------- | ------------------------------------------------------------------- | -------------- |
+| `resource_group_name`      | Name of the resource group where resources will be deployed         | `string`       |
+| `location`                 | Azure region where resources will be deployed                       | `string`       |
+| `app_service_plan_name`    | Name of the App Service Plan                                        | `string`       |
+| `app_service_plan_sku`     | SKU for App Service Plan (B1 or higher for VNet integration)        | `string`       |
+| `virtual_network_name`     | Name of the existing Virtual Network                                | `string`       |
+| `subnet_name`              | Name of the subnet to create for App Service integration            | `string`       |
+| `address_prefixes`         | Address prefixes for the application subnet                         | `list(string)` |
+| `vnet_resource_group_name` | Name of the resource group where the Virtual Network is deployed    | `string`       |
+| `app_web_app_name`         | Name of the main web application                                    | `string`       |
+| `tags`                     | Tags to apply to all resources                                      | `map(string)`  |
 
 ## Notes
 

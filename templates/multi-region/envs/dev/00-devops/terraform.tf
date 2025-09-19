@@ -15,9 +15,9 @@ terraform {
   # 5.- Delete the local terraform.tfstate file
 
   # backend "azurerm" {
-  #   resource_group_name  = "{rg-name-deployed-with-local-backend}"
-  #   storage_account_name = "{sa-name-deployed-with-local-backend}"
-  #   container_name       = "{container-name-deployed-with-local-backend}"
+  #   resource_group_name  = "{rg-devops-name-deployed-with-local-backend}"
+  #   storage_account_name = "{sa-devops-name-deployed-with-local-backend}"
+  #   container_name       = "{container-devops-name-deployed-with-local-backend}"
   #   key                  = "devops.tfstate"
   # }
 

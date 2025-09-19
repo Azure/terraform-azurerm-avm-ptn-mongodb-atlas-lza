@@ -27,10 +27,10 @@ module "devops" {
 
 module "mongodb_marketplace" {
   source            = "../../../../../modules/mongodb_marketplace"
-  count             = local.should_create_mongo_org ? 1 : 0
+  count             = var.should_create_mongo_org ? 1 : 0
   location          = local.location
   subscription_id   = local.subscription_id
-  resource_group_id = module.devops.identity_info.resource_group_id
+  resource_group_id = module.devops.identity_info.devops_resource_group_id
 
   publisher_id = local.publisher_id
   offer_id     = local.offer_id
@@ -41,8 +41,7 @@ module "mongodb_marketplace" {
 
   organization_name = local.organization_name
 
-  first_name              = local.first_name
-  last_name               = local.last_name
-  email_address           = local.email_address
-  should_create_mongo_org = local.should_create_mongo_org
+  first_name    = local.first_name
+  last_name     = local.last_name
+  email_address = local.email_address
 }

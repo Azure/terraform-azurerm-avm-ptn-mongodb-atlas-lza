@@ -21,55 +21,23 @@ Since it is Multi-Region, this step is able to deploy the Azure resources in the
 
 Before running this step, you need to:
 
-1. **Review Network Configuration**:
+**Review Network Configuration**:
 
-   * In the `locals.tf` file we created a custom logic that increments the third octet of the private subnet prefix for each region defined in the Step 1 outputs. You can adjust the logic as needed. You can even hardcode the list of addresses having each region as keys. For example:
+* Verify the `region_addresses` in `locals.tf` align with your network design.
+* Ensure the subnet CIDR doesn't conflict with existing subnets.
 
-   ```tf
-    incremented_addresses = {
-        eastus = ["10.0.2.0/24"],
-        westus = ["10.0.3.0/24"]
-    }
-   ```
-
-   * Verify the `incremented_addresses` in `locals.tf` align with your network design.
-   * Ensure the subnet CIDR doesn't conflict with existing subnets.
-
-2. **Update the data.tf file**:
-
-   * `key` is set as `01-base-infra-multi-region.tfstate` by default, since if you deploy the steps with the pipeline, it will have that value. However, you can modify that value if needed.
-
-   ```tf
-    config = {
-        resource_group_name  = "tfstate-rg"
-        storage_account_name = "tfstatestorageaccount"
-        container_name       = "tfstate"
-        key                  = "01-base-infra-multi-region.tfstate" # If you have a different key, update it accordingly
-        use_oidc             = true
-    }
-   ```
-
-## How to Deploy
-
-```bash
-terraform init
-terraform validate
-terraform plan -out tfplan
-terraform apply tfplan
-```
+**Note:** For more information on How to Deploy manually, please follow [Deploy-with-manual-steps](../../../../../docs/wiki/Deploy-with-manual-steps.md).
 
 ## What This Step Deploys
 
 This configuration creates the following for each specified region:
 
-* **Resource Group**: Container for application resources.
 * **App Service Plan**: B1 SKU with Windows OS (required for VNet integration).
 * **Application Subnet**: Dedicated subnet for App Service VNet integration.
 * **Azure Web App**: Azure Web App resource with .NET 8.0 runtime.
 
 ## Validate
 
-* Application Resource Groups created in each specified region.
 * App Service Plans deployed with correct SKU and OS.
 * Application subnets created and delegated for VNet integration.
 * Web Apps reachable and able to connect to Atlas via Private Endpoint.
@@ -93,17 +61,16 @@ Follow the detailed guide: [Database Connection Testing Guide](../../../../../do
 
 ### Application Settings
 
-* **incremented\_addresses**: Contains the logic to increment the third octet of the private subnet prefix for each region defined in the Step 1 outputs. Default logic ensures unique subnet CIDRs for each region.
 * **app\_information\_by\_region**: Contains application-specific configurations for each region, including:
-
-  * **resource\_group\_name**: Generated dynamically with Azure Naming Module.
+  * **resource\_group\_name**: Generated in step `00-devops`.
   * **location**: Region name. Default is derived from the Step 1 outputs.
   * **app\_service\_plan\_name**: Generated dynamically with Azure Naming Module.
   * **app\_service\_plan\_sku**: Default is set to `B1`.
   * **app\_web\_app\_name**: Generated dynamically with Azure Naming Module.
   * **virtual\_network\_name**: Retrieved from the Step 1 remote state.
   * **subnet\_name**: Generated dynamically with Azure Naming Module.
-  * **address\_prefixes**: Default logic increments the third octet of the private subnet prefix.
+  * **address\_prefixes**: Default address prefixes are set to `10.0.0.32/29`, `10.0.0.72/29` and `10.0.0.88/29` in `region_addresses`.
+  > The default addresses set here are placeholders for the template. To run this template, you must provide your own IP addresses.
 
 ### Tags
 

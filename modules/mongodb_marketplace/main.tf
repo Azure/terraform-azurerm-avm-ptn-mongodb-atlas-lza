@@ -1,5 +1,4 @@
 resource "azapi_resource" "mongodb_atlas_org" {
-  count     = var.should_create_mongo_org ? 1 : 0
   type      = "mongodb.atlas/organizations@2025-06-01"
   name      = var.organization_name
   location  = var.location

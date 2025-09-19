@@ -17,30 +17,22 @@ This Terraform configuration deploys the foundational infrastructure for MongoDB
 ### Required Manual Configuration
 
 Before running this step, you need to:
+**Review Network Configuration**:
 
-1. **Review Network Configuration**:
+* Verify the `region_definitions` in `locals.tf` align with your network design.
+* Ensure the subnet CIDR doesn't conflict with existing subnets.
 
-   * Verify the `region_definitions` in `locals.tf` align with your network design.
-   * Ensure the subnet CIDR doesn't conflict with existing subnets.
-
-## How to Deploy
-
-```bash
-terraform init
-terraform validate
-terraform plan -out tfplan
-terraform apply tfplan
-```
+**Note:** For more information on How to Deploy manually, please follow [Deploy-with-manual-steps](../../../../../docs/wiki/Deploy-with-manual-steps.md).
 
 ## What This Step Deploys
 
 This configuration creates:
 
-* **Resource Group**: Container for infrastructure resources.
 * **MongoDB Atlas Cluster**: Multi-region cluster with backup enabled by default, but it can be turned off if specified.
 * **Virtual Networks**: Dedicated VNets for each region.
 * **Private Subnets**: Subnets for private connectivity in each region.
 * **Private Endpoints**: Secure connections to MongoDB Atlas in each region.
+* **Observability Resources**: Provisions all infrastructure needed for centralized monitoring of MongoDB Atlas and Azure resources, including Application Insights, Storage Account, Service Plan, Function App, Private DNS Zones, and Private Endpoints. After resource creation, you must deploy the metrics collection function code to the Function App. This function will securely connect to the MongoDB Atlas API, collect metrics, and send them to Application Insights for monitoring and analysis.
 
 ## Validate
 
@@ -59,13 +51,10 @@ Follow the detailed guide: [Application Resources Guide](../02-app-resources/rea
 
 * **location**: Specifies the Azure region where resources will be deployed. Default is `eastus2`.
 * **environment**: Defines the environment type, e.g., `dev`.
-* **project\_name**: The name of the project, default is `atlas-mongodb-multiregion`.
 * **tags**: Metadata tags for resources, including `environment` and `project`.
 
 ### MongoDB Atlas Cluster Settings
 
-* **org\_id**: Organization ID for MongoDB Atlas.
-* **cluster\_name**: Name of the MongoDB cluster.
 * **cluster\_type**: Type of cluster, default is `REPLICASET`.
 * **instance\_size**: Size of the cluster instance, default is `M10`.
 * **backup\_enabled**: Enables backup for the cluster, default is `true`.
@@ -80,18 +69,23 @@ The `region_definitions` block in `locals.tf` contains configurations for multip
 * **atlas\_region**: Specifies the MongoDB Atlas region. Example values include `US_EAST`, `US_EAST_2`, and `US_WEST`.
 * **azure\_region**: Defines the corresponding Azure region. Example values include `eastus`, `eastus2`, and `westus`.
 * **priority**: Sets the priority of the region. Example values include `7`, `6`, and `5`.
-* **address\_space**: Specifies the address space for the virtual network. Example values include `10.0.0.0/16`, `10.1.0.0/16`, and `10.2.0.0/16`.
-* **private\_subnet\_prefixes**: Defines the prefixes for private subnets. Example values include `10.0.1.0/24`, `10.1.1.0/24`, and `10.2.1.0/24`.
+* **address\_space**: Specifies the address space for the virtual network. Example values include `10.0.0.0/26`, `10.0.0.64/28`, and `10.0.0.80/28`.
+* **private\_subnet\_prefixes**: Defines the prefixes for private subnets. Example values include `10.0.0.0/29`, `10.0.0.64/29`, and `10.0.0.80/29`.
 * **node\_count**: Indicates the number of nodes in the region. Example values include `2`, `2`, and `1`.
+* **observability\_function\_app\_subnet\_prefixes**: Defines the prefixes for private subnets for the Observability Function App, default is `10.0.0.8/29`.
+* **observability\_private\_endpoint\_subnet\_prefixes**: Defines the prefixes for private subnets for Observability private endpoint, default is `10.0.0.16/28`.
+
+> The default addresses set here are placeholders for the template. To run this template, you must provide your own IP addresses.
 
 ### Networking Settings
 
 * **regions**: Contains Azure-specific configurations for each region, including:
-
   * **location**: Azure region.
   * **address\_space**: Address space for the virtual network.
   * **private\_subnet\_prefixes**: Prefixes for private subnets.
   * **manual\_connection**: Indicates whether manual connection is required.
+  * **observability\_function\_app\_subnet\_prefixes**: Prefixes fot Observability Function App.
+  * **observability\_private\_endpoint\_subnet\_prefixes**: Prefixes for Observability private endpoint subnet.
 
 ## Backup Configuration
 
@@ -103,13 +97,12 @@ The backup feature is enabled by default (`backup_enabled = true`). It ensures t
 
 ### Outputs
 
-* **resource\_group\_name**: Name of the Resource Group for infrastructure resources.
 * **cluster\_id**: ID of the MongoDB Atlas cluster.
 * **project\_name**: Name of the MongoDB Atlas project.
 * **mongodb\_project\_id**: ID of the MongoDB Atlas project.
 * **privatelink\_ids**: IDs of the private links created for MongoDB Atlas.
 * **atlas\_pe\_service\_ids**: IDs of the Atlas private endpoint services.
 * **atlas\_privatelink\_endpoint\_ids**: IDs of the Atlas private link endpoints.
-* **infra\_resource\_group\_name**: Name of the infrastructure Resource Group.
 * **vnet\_names**: Names of the virtual networks created.
 * **regions\_values**: Values of the regions configured.
+* **function\_app\_default\_hostname**: Function App default hostname.

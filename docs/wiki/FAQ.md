@@ -34,7 +34,7 @@ Ensure you have the required tools installed (Terraform CLI, Azure CLI) and acce
 
 ### Can I use an existing MongoDB Atlas organization?
 
-Yes, you can use an existing Atlas organization by setting `should_create_mongo_org = false` in the `locals.tf` file during Step 00 (DevOps).
+Yes, you can use an existing Atlas organization by setting the variable `should_create_mongo_org` as `false` during Step 00 (DevOps) and in the step 01 (Infrastructure) you will add the data of the existing Organization. The default value is `true`. For more information, please refer to the [Setup environment guide](./Setup-environment.md).
 
 ---
 

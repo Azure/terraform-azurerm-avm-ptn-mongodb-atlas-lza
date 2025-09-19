@@ -58,17 +58,11 @@ You can choose whether to have Terraform create a MongoDB Atlas Organization for
 
 #### Option 1: Create Atlas Org via Terraform (Marketplace Module)
 
-- In `envs/dev/00-devops/locals.tf`, set:
-  - `should_create_mongo_org = true`
-  - Fill in `organization_name`, `first_name`, `last_name`, and `email_address` as needed.
-    - **Important:** The `email_address` must be an address you have access to. Atlas will send verification codes to this email for account setup, and this address will have full access to the new organization.
-- When you run this step, Terraform will attempt to create a new Atlas Organization for you via the Marketplace.
+To create a new MongoDB Atlas Organization via Terraform, set `should_create_mongo_org = true` and fill in all other required variables (see `local.tfvars.template` for reference).
 
 #### Option 2: Use an Existing Atlas Org
 
-- In `envs/dev/00-devops/locals.tf`, set:
-  - `should_create_mongo_org = false`
-- Ensure you have Atlas API keys for your existing organization.
+To use an existing MongoDB Atlas Organization, set `should_create_mongo_org = false`. You must also set your Atlas API keys for your existing organization as environment variables (see [Setup-environment.md](Setup-environment.md)).
 
 ---
 
@@ -76,17 +70,25 @@ You can choose whether to have Terraform create a MongoDB Atlas Organization for
 
 **Preparation:**
 
-- Set `ARM_SUBSCRIPTION_ID` environment variable locally with the azure subscription id value.
-- Update `locals.tf` in `envs/dev/00-devops/` (inside the respective single-region or multi-region folder) to set the correct values for `github_organization_name`, `github_repository_name`, and the rest of variables before running this step. This ensures resources are created in the intended Azure subscription.
+Before running this step, review and follow the instructions in [Setup-environment.md](Setup-environment.md) to ensure all required environment variables and configuration values are set correctly for your deployment.
 
 Navigate to `envs/dev/00-devops/` and run:
 
 ```bash
 terraform init
-terraform plan
+terraform plan -var-file="local.tfvars"
 # Review the plan output carefully
-terraform apply -auto-approve
+terraform apply -var-file="local.tfvars" -auto-approve
 ```
+
+_terraform init output example_
+![init example](../images/tf_init_example.png)
+
+_terraform plan output example_
+![plan example](../images/tf_plan_example.png)
+
+_terraform apply output example_
+![apply example](../images/tf_apply_example.png)
 
 #### Migrate the Terraform state to the newly created storage account
 
@@ -98,6 +100,9 @@ The steps to follow would be:
   1. Uncomment and update the azurerm backend block with the appropriate values
   1. Migrate the state to the Azure backend by running: `terraform init -migrate-state`
   1. Delete the local `terraform.tfstate` file
+
+_terraform init -migrate-state output example_
+![migrate example](../images/tf_migrate_example.png)
 
 **Important Notes:**
 
@@ -117,10 +122,9 @@ resource_group_name    = "<from step 00 output>"
 
 **MongoDB Atlas API Key Setup:**
 
-- If you created a new Atlas Organization in this step, go to the Atlas UI, generate API keys ([see MongoDB docs](https://www.mongodb.com/docs/atlas/configure-api-access-org/)), and set them as environment variables (see [Setup-environment.md](Setup-environment.md) for instructions):
-  - `MONGODB_ATLAS_PUBLIC_API_KEY`
-  - `MONGODB_ATLAS_PRIVATE_API_KEY`
-- If you are using an existing Atlas Organization, ensure you have API keys and set them as environment variables now.
+If you created a new Atlas Organization in this step, go to the Atlas UI and follow the service account setup steps described in [MongoAtlasMetrics_deployment_steps.md](./MongoAtlasMetrics_deployment_steps.md) and generate API keys ([see MongoDB docs](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for API key creation guidance).
+
+Set your MongoDB Atlas API keys as environment variables as described in [Setup-environment.md](Setup-environment.md).
 
 > **MongoDB Atlas API keys must always be set as environment variables before running step 01 where Atlas configuration is performed.**
 
@@ -128,8 +132,9 @@ resource_group_name    = "<from step 00 output>"
 
 **Preparation:**
 
-- Review and fill in the required values in `locals.tf` in `envs/dev/01-base-infra/` (such as `org_id`, `cluster_name`, and other configuration values) before running this step.
-- Go to `terraform.tf` in `envs/dev/01-base-infra/` and:
+Before running this step, review and follow the instructions in [Setup-environment.md](Setup-environment.md) to ensure all required environment variables and configuration values are set correctly for your deployment.
+
+- Go to `terraform.tf` in `envs/dev/01-base-infra/terraform.tf` and:
   - Replace:
 
   ```hcl
@@ -141,25 +146,34 @@ resource_group_name    = "<from step 00 output>"
   with the following, using the outputs from Step 00:
 
   ```hcl
-  backend "azurerm" {
-    resource_group_name  = "<from step 00 output>"
-    storage_account_name = "<from step 00 output>"
-    container_name       = "<from step 00 output>"
-    key                  = "01-base-infra.tfstate"
-  }
+    backend "azurerm" {
+      resource_group_name  = "<resource_group_name>"
+      storage_account_name = "<storage_account_name>"
+      container_name       = "<container_name>"
+      key                  = "01-base-infra.tfstate"
+    }
   ```
 
-- Set required environment variables and ensure MongoDB Atlas API keys are present in your environment.
+> **Tip:** You can use a different key name for your backend state file instead of the proposed `01-base-infra.tfstate`. Choose a naming convention that fits your environment or workflow.
+
+### Update `data.tf` for Step 01
+
+In Step 01, your `data.tf` references the remote state from Step 00 (`devops`).
+
+All backend configuration values for accessing this remote state should be set using variables defined in `variables.tf` and supplied via `local.tfvars` or environment variables.
 
 Navigate to `envs/dev/01-base-infra/` and run:
 
 ```bash
 terraform init
-terraform plan
-terraform apply -auto-approve
+terraform validate
+terraform plan -var-file=local.tfvars -out tfplan
+terraform apply -var-file=local.tfvars tfplan
 ```
 
-This provisions network resources and configures MongoDB Atlas (project, cluster, PrivateLink). For multi-region deployments, it also creates VNet peering connections between regions.
+This step provisions network resources, configures MongoDB Atlas (project, cluster, PrivateLink), and deploys observability resources. For multi-region deployments, it also creates VNet peering connections between regions.
+
+Observability resources provision the infrastructure needed to host a Function App for MongoDB Atlas metrics collection, including Application Insights, storage, and networking. The actual metrics function code (which connects to the MongoDB Atlas API, retrieves key metrics, and pushes them to Application Insights) must be deployed separately after the infrastructure is provisioned. This enables centralized monitoring, alerting, and analysis of your MongoDB Atlas environment directly within Azure.
 
 ---
 
@@ -167,7 +181,9 @@ This provisions network resources and configures MongoDB Atlas (project, cluster
 
 **Preparation:**
 
-- Go to `terraform.tf` in `envs/dev/02-app-resources/` and replace:
+Before running this step, review and follow the instructions in [Setup-environment.md](Setup-environment.md) to ensure all required environment variables and configuration values are set correctly for your deployment.
+
+- Go to `terraform.tf` in `envs/dev/02-app-resources/terraform.tf` and replace:
 
   ```hcl
   backend "azurerm" {
@@ -179,40 +195,32 @@ This provisions network resources and configures MongoDB Atlas (project, cluster
 
   ```hcl
   backend "azurerm" {
-    resource_group_name  = "<from step 00 output>"
-    storage_account_name = "<from step 00 output>"
-    container_name       = "<from step 00 output>"
-    key                  = "02-application.tfstate"
+      resource_group_name  = "<resource_group_name>"
+      storage_account_name = "<storage_account_name>"
+      container_name       = "<container_name>"
+      key                  = "02-application.tfstate"
   }
   ```
 
-- Ensure `data.tf` in `envs/dev/02-app-resources/` references the correct resource group, storage account, container and key values from Step 01.
+> **Tip:** You can use a different key name for your backend state file instead of the proposed `02-application.tfstate`. Choose a naming convention that fits your environment or workflow.
 
 ### Data Configuration
 
-In your `data.tf` update the `terraform_remote_state` resource and set the corresponding values:
+### Remote State and Variable Usage
 
-```hcl
-data "terraform_remote_state" "common" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = "tfstate-rg"
-    storage_account_name = "tfstatestorageaccount"
-    container_name       = "tfstate"
-    key                  = "01-base-infra.tfstate"
-    use_oidc             = true
-  }
-}
-```
+In Step 02, your `data.tf` references two remote states:
 
-> **Note:** If you have a different key for the setup, update it accordingly
+- `common` (Step 01: Base Infrastructure)
+- `devops` (Step 00: DevOps)
+
+All backend values for these remote states are set using variables defined in `variables.tf` and provided via `local.tfvars` or environment variables.
 
 Navigate to `envs/dev/02-app-resources/` and run:
 
 ```bash
 terraform init
-terraform plan
-terraform apply -auto-approve
+terraform plan -var-file="local.tfvars"
+terraform apply -var-file="local.tfvars" -auto-approve
 ```
 
 This deploys application resources (App Service, test app, VNet integration).
@@ -228,30 +236,32 @@ This deploys application resources (App Service, test app, VNet integration).
    - Navigate to the appropriate path:
      - Single-region: `templates/single-region/envs/dev/00-devops/`
      - Multi-region: `templates/multi-region/envs/dev/00-devops/`
-   - Review and update `locals.tf` as needed.
+   - Set variable values using a `local.tfvars` file or environment variables.
    - Run Terraform commands.
    - Copy outputs for backend configuration.
+   - **Note:** Step 00 deploys the resource group used by Step 01 and Step 02. If you do not provide a resource group name, it will not be created automatically: ensure you pass the correct value if you want it provisioned.
 
 2. **Step 01: Base Infrastructure**
    - Navigate to the appropriate path:
      - Single-region: `templates/single-region/envs/dev/01-base-infra/`
      - Multi-region: `templates/multi-region/envs/dev/01-base-infra/`
    - Update `terraform.tf` with backend values from Step 00.
-   - Set environment variables and API keys.
+   - Set environment variables and API keys (see [Setup-environment.md](Setup-environment.md)).
    - Run Terraform commands.
+   - This step also deploys observability resources (Application Insights, Storage Account, Service Plan, etc.).
 
 3. **Step 02: Application**
    - Navigate to the appropriate path:
      - Single-region: `templates/single-region/envs/dev/02-app-resources/`
      - Multi-region: `templates/multi-region/envs/dev/02-app-resources/`
    - Update `terraform.tf` with backend values from Step 00.
-   - Ensure `data.tf` references Step 01 outputs.
+   - Ensure `data.tf` references Step 01 outputs using the `terraform_remote_state` configuration.
    - Run Terraform commands.
 
 ---
 
 **Tips:**
 
-- Each step includes a pre-filled `locals.tf` file with default values for common deployments. Review and update as needed.
-- Always ensure environment variables and API keys are set before running steps that require them.
+- Reference [Setup-environment.md](Setup-environment.md) for instructions on setting environment variables locally or in CI.
+- Step 2 (Application) is optional and can be skipped if not needed.
 - Do not rerun Step 00 unless you intend to destroy and recreate all resources.

@@ -1,12 +1,14 @@
 # Terraform Landing Zone for MongoDB Atlas on Azure
 
-This repository provides a modular, production-ready Terraform solution for deploying a secure MongoDB Atlas environment on Azure, featuring private networking, DevOps automation, and end-to-end cluster setup.
+This repository provides a modular Terraform solution for deploying a secure MongoDB Atlas environment on Azure, featuring private networking, DevOps automation, observability, and end-to-end cluster setup.
 
 ---
 
 ## Disclaimer
 
-> **Warning:** Deploying this infrastructure is **NOT free**. It includes paid resources such as a dedicated MongoDB Atlas cluster, networking resources, and various Azure services. Please review the associated costs carefully before running `terraform apply`. For more details, refer to the [MongoDB Atlas Private Endpoint documentation](https://www.mongodb.com/docs/atlas/security-private-endpoint/).
+> **Warning:** This code is provided for demonstration purposes and should not be used in production without thorough testing. You are responsible for validating the configuration and ensuring it meets your environment's requirements.
+> Deploying this infrastructure is **NOT free**. It includes paid resources such as a dedicated MongoDB Atlas cluster, networking resources, and various Azure services. Please review the associated costs carefully before running `terraform apply`. For more details, refer to the [MongoDB Atlas Private Endpoint documentation](https://www.mongodb.com/docs/atlas/security-private-endpoint/).
+
 ---
 
 ## Table of Contents
@@ -20,7 +22,6 @@ This repository provides a modular, production-ready Terraform solution for depl
 - [Deployment Flow](#deployment-flow)
 - [MongoDB Atlas: Sizing, Tiers, Regions, Pricing References and High availability configuration](#mongodb-atlas-sizing-tiers-regions-pricing-references-and-high-availability-configuration)
 - [Documentation](#documentation)
-- [License](#license)
 
 ---
 
@@ -31,6 +32,7 @@ This repository provides a modular, production-ready Terraform solution for depl
 - **MongoDB Atlas Automation:** Deploys Atlas projects, clusters, and PrivateLink endpoints using the official provider.
 - **Application Module:** Deploys a .NET sample app to Azure App Service with VNet integration for connectivity validation.
 - **Marketplace Integration:** Optionally deploys an Atlas organization via Azure Marketplace using the `azapi` provider.
+- **Observability & Monitoring:** Provisions infrastructure for metrics collection and centralized monitoring using Azure Application Insights and the Metrics Function App.
 
 ---
 
@@ -38,13 +40,14 @@ This repository provides a modular, production-ready Terraform solution for depl
 
 For module-specific details, refer to [Modules.md](Modules.md):
 
-- [Application](../../modules/application/readme.md): App Service Plan, Web App, and VNet integration.
-- [DevOps](../../modules/devops/readme.md): Remote state, identity, and automation.
-- [MongoDB Atlas Config Single Region](../../modules/atlas_config_single_region/readme.md): Atlas project, cluster, and PrivateLink.
-- [MongoDB Atlas Config Multi Region](../../modules/atlas_config_multi_region/readme.md): Atlas project, cluster, and PrivateLink.
-- [MongoDB Marketplace](../../modules/mongodb_marketplace/readme.md): Atlas org deployment via Azure Marketplace.
-- [Network](../../modules/network/readme.md): VNet, subnets, NAT, NSG, and private endpoints.
-- [VNet Peering](../../modules/vnet_peering/readme.md): Virtual network peering for multi-region connectivity.
+- [Application](../modules/application/readme.md): App Service Plan, Web App, and VNet integration.
+- [DevOps](../modules/devops/readme.md): Remote state, identity, and automation.
+- [MongoDB Atlas Config Single Region](../modules/atlas_config_single_region/readme.md): Atlas project, cluster, and PrivateLink.
+- [MongoDB Atlas Config Multi Region](../modules/atlas_config_multi_region/readme.md): Atlas project, cluster, and PrivateLink.
+- [MongoDB Marketplace](../modules/mongodb_marketplace/readme.md): Atlas org deployment via Azure Marketplace.
+- [Network](../modules/network/readme.md): VNet, subnets, NAT, NSG, and private endpoints.
+- [VNet Peering](../modules/vnet_peering/readme.md): Virtual network peering for multi-region connectivity.
+- [Observability](../modules/observability/): Application Insights, and supporting resources for monitoring and metrics collection.
 
 ---
 
@@ -87,18 +90,22 @@ This solution supports both single-region and multi-region deployments. Follow t
 
 2. **Step 0: DevOps (Manual)**
    - Go to `templates/single-region/envs/dev/00-devops/`.
-   - This sets up backend storage and identity resources. Optionally, creates the Atlas organization.
+   - This sets up backend storage and identity resources, and creates the resource groups required for Step 1 (base infrastructure) and Step 2 (application resources, optional). Optionally, creates the Atlas organization.
    - See [Deploy-with-manual-steps.md](Deploy-with-manual-steps.md) for step-by-step guidance and Terraform commands.
 
 3. **Provision Infrastructure and Application**
    - Go to `templates/single-region/envs/dev/01-base-infra/` and after completion, `templates/single-region/envs/dev/02-app-resources/`.
-   - This provisions base infrastructure, configures MongoDB Atlas (single region), and deploys the sample application.
+   - This provisions the base infrastructure, sets up MongoDB Atlas (single-region), and creates the necessary resources for deploying the Metrics app and the Test DB Connection app (if required). Refer to Steps 4 and 5 below for instructions on deploying the Metrics Function App and verifying connectivity.
    - Refer to [Deploy-with-manual-steps.md](Deploy-with-manual-steps.md) for manual instructions and Terraform commands, or [Deploy-with-pipeline.md](Deploy-with-pipeline.md) for CI/CD pipeline usage.
 
-4. **Testing Connectivity**
+4. **Deploy Metrics Function App**
+    - Deploy the Metrics Function App to enable monitoring and metrics collection for your MongoDB Atlas environment.
+    - Follow the steps in [MongoAtlasMetrics_deployment_steps.md](MongoAtlasMetrics_deployment_steps.md) to deploy and configure the Metrics Function App.
+
+5. **Testing Connectivity**
    - Use the provided .NET test app in `test-db-connection/test-pe-db-connection/` and follow [Database Connection Testing Guide](Test_DB_connection_steps.md) to verify connectivity.
 
-5. **Testing Resilience**
+6. **Testing Resilience**
    - After deployment and connectivity testing, validate the application's resilience to regional outages.
    - To simulate a regional outage and test failover, follow the official MongoDB Atlas guide: [Simulate a Regional Outage](https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/).
    - This ensures your cluster and application are configured for high availability and can recover from regional failures.
@@ -113,18 +120,22 @@ This solution supports both single-region and multi-region deployments. Follow t
 
 2. **Step 0: DevOps (Manual)**
    - Go to `templates/multi-region/envs/dev/00-devops/`.
-   - This sets up backend storage and identity resources. Optionally, create the Atlas organization.
+   - This sets up backend storage and identity resources, and creates the resource groups required for Step 1 (base infrastructure) and Step 2 (application resources, optional). Optionally, creates the Atlas organization.
    - See [Deploy-with-manual-steps.md](Deploy-with-manual-steps.md) for step-by-step guidance and Terraform commands.
 
 3. **Provision Infrastructure and Application**
    - Go to `templates/multi-region/envs/dev/01-base-infra/` and then `templates/multi-region/envs/dev/02-app-resources/`.
-   - This provisions base infrastructure, configures MongoDB Atlas (multi-region), VNet peering between regions, and deploys the sample application.
+   - This provisions the base infrastructure, sets up MongoDB Atlas (multi-region), establishes VNet peering across regions, and creates the necessary resources for deploying the Metrics app and the Test DB Connection app (if required). Refer to Steps 4 and 5 below for instructions on deploying the Metrics Function App and verifying connectivity.
    - Refer to [Deploy-with-manual-steps.md](Deploy-with-manual-steps.md) for manual instructions and Terraform commands, or [Deploy-with-pipeline.md](Deploy-with-pipeline.md) for CI/CD pipeline usage.
 
-4. **Testing Connectivity**
+4. **Deploy Metrics Function App**
+    - Deploy the Metrics Function App to enable monitoring and metrics collection for your MongoDB Atlas environment.
+    - Follow the steps in [MongoAtlasMetrics_deployment_steps.md](MongoAtlasMetrics_deployment_steps.md) to deploy and configure the Metrics Function App.
+
+5. **Testing Connectivity**
    - Use the provided .NET test app in `test-db-connection/test-pe-db-connection/` and follow [Database Connection Testing Guide](Test_DB_connection_steps.md) to verify connectivity across all configured regions.
 
-5. **Testing Resilience**
+6. **Testing Resilience**
    - After deployment and connectivity testing, validate the application's resilience to regional outages and failover scenarios.
    - To simulate a regional outage and test failover, follow the official MongoDB Atlas guide: [Simulate a Regional Outage](https://www.mongodb.com/docs/atlas/tutorial/test-resilience/simulate-regional-outage/).
    - This ensures your cluster and application are configured for high availability and can recover from regional failures.
@@ -172,9 +183,6 @@ For more information, see the [MongoDB Atlas High Availability documentation](ht
 - [Manual Deployment Steps](Deploy-with-manual-steps.md)
 - [Pipeline Deployment Guide](Deploy-with-pipeline.md)
 - [Database Connection Testing Guide](Test_DB_connection_steps.md)
+- [Metrics & Observability Deployment Guide](MongoAtlasMetrics_deployment_steps.md)
 
 ---
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

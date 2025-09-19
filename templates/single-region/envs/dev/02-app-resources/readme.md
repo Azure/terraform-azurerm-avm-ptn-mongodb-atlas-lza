@@ -19,32 +19,23 @@ This Terraform configuration deploys Azure application resources including App S
 
 Before running this step, you need to:
 
-1. **Review Network Configuration**:
+**Review Network Configuration**:
 
    * Verify the `address_prefixes` in `locals.tf` align with your network design.
    * Ensure the subnet CIDR doesn't conflict with existing subnets.
 
-## How to Deploy
-
-```bash
-terraform init
-terraform validate
-terraform plan -out tfplan
-terraform apply tfplan
-```
+> **Note:** For information on How to Deploy manually, please follow the steps in [Deploy with manual steps](../../../../../docs/wiki/Deploy-with-manual-steps.md) guide.
 
 ## What This Step Deploys
 
 This configuration creates:
 
-* **Resource Group**: Container for application resources.
 * **App Service Plan**: B1 SKU with Windows OS (required for VNet integration).
 * **Application Subnet**: Dedicated subnet for App Service VNet integration.
 * **Azure Web App**: Azure Web App resource with .NET 8.0 runtime.
 
 ## Validate
 
-* Resource Group for application resources is created.
 * App Service Plan deployed with correct SKU and OS.
 * Application subnet created and delegated for VNet integration.
 * Web App deployed and able to reach the Atlas cluster via Private Endpoint.
@@ -69,13 +60,15 @@ Follow the detailed guide: [Database Connection Testing Guide](../../../../../do
 
 ### Application Settings
 
-* **resource\_group\_name**: Generated dynamically using the Azure Naming Module.
+* **resource\_group\_name**: Generated in step `00-devops`.
 * **app\_service\_plan\_name**: Generated dynamically using the Azure Naming Module.
 * **app\_service\_plan\_sku**: Default is set to `B1`.
 * **app\_web\_app\_name**: Generated dynamically using the Azure Naming Module.
 * **virtual\_network\_name**: Retrieved from the Step 1 remote state.
 * **subnet\_name**: Generated dynamically using the Azure Naming Module.
-* **address\_prefixes**: Default is set to `10.0.2.0/24`.
+* **address\_prefixes**: Default is set to `10.0.0.32/29`.
+
+> The default addresses set here are placeholders for the template. To run this template, you must provide your own IP addresses.
 
 ### Tags
 

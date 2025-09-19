@@ -2,100 +2,71 @@
 
 ## Overview
 
-This Terraform configuration deploys Azure DevOps resources including storage accounts, federated identities, and permissions required for managing the environment.
+This step provisions foundational DevOps resources for the multi-region MongoDB Atlas landing zone accelerator using Terraform. It sets up Azure storage for state management, federated identity for secure automation, and permissions for GitHub Actions integration. Optionally, it deploys a MongoDB Atlas Organization via Azure Marketplace.
+
+## What This Configuration Creates
+
+* **Resource Groups**: Containers for DevOps, Infrastructure, and Application resources.
+* **Storage Account**: Used for storing Terraform state files, with versioning and delete retention enabled, and public access disabled.
+* **Federated Identity**: Enables GitHub Actions to authenticate with Azure using OIDC.
+* **Permissions**: Assigns roles such as Contributor on all resource groups and Storage Blob Data Contributor on the Storage Account.
+* **MongoDB Atlas Organization**: Creates a new MongoDB Atlas organization via Azure Marketplace if `should_create_mongo_org` is set to `true`.
 
 ## Prerequisites
 
-⚠️ **IMPORTANT**: You must configure the required values in the `locals.tf` file before running this configuration.
+* Copy `local.tfvars.template` to `local.tfvars` and fill in all required values for your environment (organization, repository, identity, permissions, etc.).
+* Set the `ARM_SUBSCRIPTION_ID` environment variable to your Azure subscription ID before running Terraform commands.
 
-### Required Manual Configuration
+> For more information, see [Setup Environment](../../../../../docs/wiki/Setup-environment.md)
 
-Before running this step, you need to:
-
-1. **Review Identity Configuration**:
-
-   * Ensure the `github_organization_name`, `github_repository_name`, `email_address` and `environment` fields are properly configured in `locals.tf`.
-   * Verify the `permissions` and `federation` settings align with your organization's requirements.
-
-2. **Set azure subscription id env variable**:
-
-   * Set `ARM_SUBSCRIPTION_ID` environment variable locally with the azure subscription id value.
-
-## How to Deploy
+## Deployment Steps
 
 ```bash
 terraform init
 terraform validate
-terraform plan -out tfplan
-terraform apply tfplan
+terraform plan -var-file=local.tfvars -out tfplan
+terraform apply -var-file=local.tfvars tfplan
 ```
 
-## What This Step Deploys
+**Note:** For more information on How to Deploy manually, please follow [Deploy-with-manual-steps](../../../../../docs/wiki/Deploy-with-manual-steps.md).
 
-This configuration creates:
+## Validation Checklist
 
-* **Resource Group**: Container for DevOps resources.
-* **Storage Account**: Used for storing Terraform state files.
-* **Federated Identity**: Enables GitHub Actions to authenticate with Azure.
-* **Permissions**: Assigns roles such as Contributor and User Access Administrator.
-* **MongoDB Atlas Organization**: Creates a new MongoDB Atlas organization if `should_create_mongo_org` is set to `true`.
+* DevOps, Infrastructure, and (optionally) Application resource groups are created
+* Storage Account is provisioned with:
+  * Replication type and account tier
+  * Versioning and delete retention enabled
+  * Public access to nested items disabled
+* Storage Container for Terraform state is created
+* User Assigned Identity is created for automation
+* Federated Identity Credential for GitHub Actions OIDC is created and linked to the identity
+* Role assignments:
+  * Contributor on all resource groups
+  * Storage Blob Data Contributor on the Storage Account
+* All outputs are available after apply
+* MongoDB Atlas Organization is created via Azure Marketplace if enabled
 
-## Validate
+## Configuration Reference
 
-* Storage Account exists with correct replication and container.
-* Federated identity for GitHub Actions is configured and working.
-* Permissions assigned match roles specified in `locals.tf`.
-* MongoDB Atlas Organization created if enabled.
+See `local.tfvars.template` for all configurable values, including:
 
-## Usage
-
-1. **Ensure Prerequisites**: Verify the `locals.tf` file is properly configured.
-2. **Run Terraform**: Use the pipeline or manual commands to deploy this step.
-
-## Default Values in `locals.tf`
-
-### General Settings
-
-* **location**: Specifies the Azure region where resources will be deployed. Default is set to `eastus2`.
-* **suffix**: Default is set to `devops`.
-
-### Storage Account Settings
-
-* **account\_tier**: Default is set to `Standard`.
-* **replication\_type**: Default is set to `ZRS`.
-* **container\_name**: Default is set to `tfstate`.
-
-### Identity Settings
-
-* **github\_organization\_name**: Set to your Organization name.
-* **github\_repository\_name**: Set to your Repository name.
-* **environment**: Default is set to `dev`.
-* **permissions**: Includes Contributor and User Access Administrator roles.
-* **federation**: Configures federated identity for GitHub Actions.
-
-### Tags
-
-* **tags**: Metadata tags for resources, including `environment` and `location`. Default includes `environment` set to `dev` and `location` set to `eastus2`.
-
-## Organization Settings
-
-### MongoDB Atlas Organization
-
-* **organization\_name**: Name of the MongoDB Atlas organization to be created. Default is set to `your-org`.
-* **first\_name**: First name of the organization owner. Default is set to `tester`.
-* **last\_name**: Last name of the organization owner. Default is set to `tester`.
-* **email\_address**: Email address of the organization owner. Default is set to `tester@example.com`.
-* **should\_create\_mongo\_org**: Flag to determine whether a MongoDB Atlas organization should be created. Default is set to `true`.
-
-### Marketplace Settings
-
-* **publisher\_id**: Publisher ID for the MongoDB Atlas offer. Default is set to `mongodb`.
-* **offer\_id**: Offer ID for the MongoDB Atlas offer. Default is set to `mongodb_atlas_azure_native_prod`.
-* **plan\_id**: Plan ID for the MongoDB Atlas offer. Default is set to `azure_native`.
-* **term\_id**: Term ID for the MongoDB Atlas offer. Default is set to `gmz7xq9ge3py`.
-* **plan\_name**: Name of the plan for the MongoDB Atlas offer. Default is set to `Pay as You Go`.
-* **term\_unit**: Unit of the term for the MongoDB Atlas offer. Default is set to `P1M`.
+* Azure region, resource group names, and tags
+* Storage account and container settings
+* GitHub organization and repository
+* Federated identity and OIDC settings
+* MongoDB Atlas organization and user details
+* Marketplace offer parameters
 
 ## Outputs
 
-* **identity\_info**: Information about the federated identity created for GitHub Actions.
+* `identity_info`: Output from the DevOps module containing identity and resource details
+* `resource_group_names`: Map with the names of the DevOps, Infrastructure, and Application resource groups
+
+## Permissions Granted
+
+* Contributor on DevOps, Infrastructure, and (if configured) Application resource groups
+* Storage Blob Data Contributor on the Storage Account
+
+## Notes
+
+* Deleting the Atlas Organization in Azure does not remove it from the Atlas portal

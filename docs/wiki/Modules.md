@@ -2,17 +2,17 @@
 
 ## [Application Module](../../modules/application/readme.md)
 
-- Creates a dedicated resource group for the application.
-- Deploys App Service Plan and Azure Web App (test app).
+- Deploys an App Service Plan and an Azure Web App. The Test DB Connection app has to be deployed to this Web App to test the connection with the deployed cluster. For more information, please refer the [Test DB Connection App Guide](./Test_DB_connection_steps.md).
 - Provisions virtual network and subnet for the app.
 - Enables VNet integration for secure connectivity validation to MongoDB Atlas.
 
 ## [DevOps Module](../../modules/devops/readme.md)
 
 - Provisions the core resource group for state and identity management.
+- Creates the Infrastructure resource group (which will be used in the step 01)
+- Creates the Application resource group (which will be used in the step 02). This is optional since the step 02 is just to test the connection with the deployed cluster.
 - Creates a storage account and container for Terraform remote state.
 - Sets up federated identity and role assignments for automation.
-- Optionally provisions a MongoDB Atlas Organization via Azure Marketplace (if enabled).
 
 ## [MongoDB Atlas Configuration Module For Multi Region](../../modules/atlas_config_multi_region/readme.md)
 
@@ -29,7 +29,6 @@
 ## [MongoDB Marketplace Module](../../modules/mongodb_marketplace/readme.md)
 
 - Provisions a MongoDB Atlas Organization using Azure Marketplace integration and the azapi provider.
-- Used only if you want to automate Atlas org creation from Azure.
 
 ## [Network Module](../../modules/network/readme.md)
 
@@ -42,3 +41,7 @@
 - Provisions virtual network peering between two VNets in Azure.
 - Creates bidirectional peering connections with configurable traffic and gateway settings.
 - Used in multi-region deployments to connect VNets across different regions.
+
+## [Observability Module](../../modules/observability/readme.md)
+
+- Provisions observability infrastructure for monitoring MongoDB Atlas metrics in Azure. It creates all necessary resources to host a scheduled metrics collection Function App. The MongoAtlasMetrics app has to be deployed to the created Function App resource to send the metrics to the Application Insights. For more information, please refer the [MongoAtlasMetrics App Guide](./MongoAtlasMetrics_deployment_steps.md).

@@ -14,33 +14,29 @@ This Terraform configuration deploys the foundational infrastructure for MongoDB
 
    - Verify the `locals.tf` file contains accurate values for your setup.
 
+2. **Deploy the Terraform state from step 00**:
+   - Follow the instructions on the step 00 `terraform.tf` file to migrate the Terraform state to the Azure backend
+
 ### Required Manual Configuration
 
 Before running this step, you need to:
 
-1. **Review Network Configuration**:
+**Review Network Configuration**:
 
-   - Verify the `vnet_address_space` and `private_subnet_prefixes` in `locals.tf` align with your network design.
+   - Verify the `vnet_address_space`, `private_subnet_prefixes`, `observability_function_app_subnet_prefixes`, and `observability_private_endpoint_subnet_prefixes` in `locals.tf` align with your network design.
    - Ensure the subnet CIDR doesn't conflict with existing subnets.
 
-## How to Deploy
-
-```bash
-terraform init
-terraform validate
-terraform plan -out tfplan
-terraform apply tfplan
-```
+> **Note:** For information on How to Deploy manually, please follow the steps in [Deploy with manual steps](../../../../../docs/wiki/Deploy-with-manual-steps.md) guide.
 
 ## What This Step Deploys
 
 This configuration creates:
 
-- **Resource Group**: Container for infrastructure resources.
 - **MongoDB Atlas Cluster**: Single-region cluster with backup enabled by default, but it can be turned off if specified.
 - **Virtual Network**: Dedicated VNet for the cluster.
 - **Private Subnet**: Subnet for private connectivity.
 - **Private Endpoint**: Secure connection to MongoDB Atlas.
+- **Observability Resources**: Provisions all infrastructure needed for centralized monitoring of MongoDB Atlas and Azure resources, including Application Insights, Storage Account, Service Plan, Function App, Private DNS Zones, and Private Endpoints. After resource creation, you must deploy the metrics collection function code to the Function App. This function will securely connect to the MongoDB Atlas API, collect metrics, and send them to Application Insights for monitoring and analysis.
 
 ## Validate
 
@@ -59,13 +55,10 @@ Follow the detailed guide: [Application Resources Guide](../02-app-resources/rea
 
 - **location**: Specifies the Azure region where resources will be deployed. Default is `eastus2`.
 - **environment**: Defines the environment type, e.g., `dev`.
-- **project_name**: The name of the project, default is `atlas-mongodb`.
 - **tags**: Metadata tags for resources, including `environment`, `location`, and `project`.
 
 ### MongoDB Atlas Cluster Settings
 
-- **org_id**: Organization ID for MongoDB Atlas.
-- **cluster_name**: Name of the MongoDB cluster.
 - **cluster_type**: Type of cluster, default is `REPLICASET`.
 - **instance_size**: Size of the cluster instance, default is `M10`.
 - **backup_enabled**: Enables backup for the cluster, default is `true`.
@@ -78,8 +71,11 @@ Follow the detailed guide: [Application Resources Guide](../02-app-resources/rea
 
 ### Networking Settings
 
-- **vnet_address_space**: Address space for the virtual network, default is `10.0.0.0/16`.
-- **private_subnet_prefixes**: Prefixes for private subnets, default is `10.0.1.0/24`.
+- **vnet_address_space**: Address space for the virtual network, default is `10.0.0.0/26`.
+- **private_subnet_prefixes**: Prefixes for private subnets, default is `10.0.0.0/29`.
+- **observability_function_app_subnet_prefixes**: Prefixes fot Observability Function App, default is `10.0.0.8/29`.
+- **observability_private_endpoint_subnet_prefixes**: Prefixes for Observability private endpoint subnet, default is `10.0.0.16/28`.
+> The default addresses set here are placeholders for the template. To run this template, you must provide your own IP addresses.
 
 ## Backup Configuration
 
@@ -98,3 +94,4 @@ The backup feature is enabled by default (`backup_enabled = true`). It ensures t
 - **privatelink_id**: ID of the private link created for MongoDB Atlas.
 - **atlas_pe_service_id**: ID of the Atlas private endpoint service.
 - **atlas_privatelink_endpoint_id**: ID of the Atlas private link endpoint.
+- **function_app_default_hostname**: Function App default hostname.

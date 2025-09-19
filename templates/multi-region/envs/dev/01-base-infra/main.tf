@@ -86,6 +86,8 @@ module "observability" {
   vnet_name                       = module.network["eastus"].vnet_name
   private_endpoint_subnet_id      = module.network["eastus"].observability_private_endpoint_subnet_id
   function_frequency_cron         = var.function_frequency_cron
+  mongodb_included_metrics        = var.mongodb_included_metrics
+  mongodb_excluded_metrics        = var.mongodb_excluded_metrics
 }
 
 data "azurerm_resource_group" "infrastructure_rg" {

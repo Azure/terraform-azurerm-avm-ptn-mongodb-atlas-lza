@@ -49,40 +49,35 @@ variable "subscription_id" {
 }
 
 variable "email_address" {
-  description = "Email address of the user"
+  description = "Email of the MongoDB Atlas user"
   type        = string
   default     = ""
 
   validation {
-    condition     = var.should_create_mongo_org == false || length(var.email_address) > 0
-    error_message = "email_address must be set if should_create_mongo_org is true."
+    condition     = length(var.email_address) > 0
+    error_message = "email_address must be set for MongoDB Atlas org creation."
   }
 }
 
 variable "first_name" {
-  description = "First name of the user"
+  description = "First name of MongoDB Atlas user"
   type        = string
   default     = ""
 
   validation {
-    condition     = var.should_create_mongo_org == false || length(var.first_name) > 0
-    error_message = "first_name must be set if should_create_mongo_org is true."
+    condition     = length(var.first_name) > 0
+    error_message = "first_name must be set for MongoDB Atlas org creation."
   }
 }
 
 variable "last_name" {
-  description = "Last name of the user"
+  description = "Last name of MongoDB Atlas user"
   type        = string
   default     = ""
 
   validation {
-    condition     = var.should_create_mongo_org == false || length(var.last_name) > 0
-    error_message = "last_name must be set if should_create_mongo_org is true."
+    condition     = length(var.last_name) > 0
+    error_message = "last_name must be set for MongoDB Atlas org creation."
   }
 }
 
-variable "should_create_mongo_org" {
-  description = "Whether to create a new MongoDB Atlas organization"
-  type        = bool
-  default     = false
-}

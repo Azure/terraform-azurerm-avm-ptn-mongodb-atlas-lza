@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Terraform module provisions core networking resources in Azure, including:
+This Terraform module provisions core networking resources in Azure and MongoDB Atlas, including:
 
 ## Features
 
@@ -11,6 +11,7 @@ This Terraform module provisions core networking resources in Azure, including:
 - NAT Gateway and Public IP
 - Network Security Group (NSG)
 - Private Endpoint for MongoDB Atlas (with Atlas PrivateLink integration)
+- Subnets for observability
 
 ## Usage
 
@@ -36,6 +37,11 @@ module "network" {
   request_message                 = "Please approve connection"
   project_id                      = "project-id"
   private_link_id                 = "private-link-id"
+  deploy_observability_subnets                   = true
+  observability_function_app_subnet_name         = "snet-function-app"
+  observability_function_app_subnet_prefixes     = ["10.0.0.0/29"]
+  observability_private_endpoint_subnet_name     = "snet-private-endpoint"
+  observability_private_endpoint_subnet_prefixes = ["10.0.1.0/29"]
 
   tags = {
     Environment = "dev"
@@ -67,6 +73,11 @@ module "network" {
 | `request_message`           | Message for manual connection approval                    | `string`       |
 | `project_id`                | ID of the MongoDB Atlas project                           | `string`       |
 | `private_link_id`           | Atlas Private Link ID                                     | `any`          |
+| `deploy_observability_subnets`                | Should observability subnets be deployed?                           | `bool`       |
+| `observability_function_app_subnet_name`                | Observability Function App subnet name                           | `string`       |
+| `observability_function_app_subnet_prefixes`                | Address space for the Observability Function App                           | `list(string)`       |
+| `observability_private_endpoint_subnet_name`                | Observability Private endpoint subnet name                           | `string`       |
+| `observability_private_endpoint_subnet_prefixes`                | Address space for the Observability Private endpoint                           | `list(string)`       |
 
 ## Outputs
 
@@ -77,3 +88,5 @@ module "network" {
 - **nat\_gateway\_public\_ip**: Public IP address of the NAT Gateway.
 - **private\_subnet\_nsg\_id**: ID of the NSG associated with the subnet.
 - **private\_endpoint\_id**: ID of the MongoDB private endpoint.
+- **observability\_function\_app\_subnet\_id**: ID of the Function App subnet.
+- **observability\_private\_endpoint\_subnet\_id**: ID of the Private Endpoint

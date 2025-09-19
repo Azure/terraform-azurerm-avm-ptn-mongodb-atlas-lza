@@ -50,3 +50,15 @@ variable "key_name_tfstate" {
   description = "Name of Key for devops TF state"
   type        = string
 }
+
+variable "mongodb_included_metrics" {
+  description = "Metrics to include for MongoDB monitoring. The value has to be a comma-separated string. If this value is set, then excluded metrics are ignored."
+  type        = string
+  default     = ""
+}
+
+variable "mongodb_excluded_metrics" {
+  description = "Metrics to exclude for MongoDB monitoring. The value has to be a comma-separated string."
+  type        = string
+  default     = ""
+}

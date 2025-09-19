@@ -55,6 +55,18 @@ $env:MONGODB_ATLAS_PUBLIC_API_KEY = "<ATLAS_PUBLIC_KEY>"
 $env:MONGODB_ATLAS_PRIVATE_API_KEY = "<ATLAS_PRIVATE_KEY>"
 ```
 
+## Terraform variables
+
+For local development, each template provides a `local.tfvars.template` file with the required variables.
+To configure variables for your environment:
+
+1. Copy the template in the same directory and rename it to `local.tfvars`.
+2. Edit `local.tfvars` and update the values to match your environment.
+
+These `local.tfvars` files will be used when deploying with manual steps.
+
+> Do not commit your `local.tfvars` files. They are intended for local use only and are excluded via `.gitignore`.
+
 ---
 
 ## Pipeline / CI Setup
@@ -66,37 +78,44 @@ You must create a GitHub environment named `dev` in your repository settings. Se
 In this environment, set the following:
 
 - **Secrets:**
-  - `MONGODB_ATLAS_PUBLIC_KEY` (Atlas public API key)
-  - `MONGODB_ATLAS_PRIVATE_KEY` (Atlas private API key)
-  - `TF_VAR_MONGO_ATLAS_CLIENT_ID` (Atlas client ID)
-  - `TF_VAR_MONGO_ATLAS_CLIENT_SECRET` (Atlas client secret)
-  - `TF_VAR_ORG_ID` (Atlas org ID)
+  - `MONGODB_ATLAS_PUBLIC_KEY` (Atlas public API key, [see MongoDB docs](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for API key creation guidance)
+  - `MONGODB_ATLAS_PRIVATE_KEY` (Atlas private API key, [see MongoDB docs](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for API key creation guidance)
+  - `TF_VAR_mongo_atlas_client_id` (Atlas client ID, to generate this value, please follow the [Mongo Atlas Metrics guide](./MongoAtlasMetrics_deployment_steps.md))
+  - `TF_VAR_mongo_atlas_client_secret` (Atlas client secret, to generate this value, please follow the [Mongo Atlas Metrics guide](./MongoAtlasMetrics_deployment_steps.md))
+  - `TF_VAR_org_id` (Atlas org ID)
 - **Variables:**
-  - `ARM_CLIENT_ID`
-  - `ARM_SUBSCRIPTION_ID`
-  - `ARM_TENANT_ID`
-  - `TF_VAR_PROJECT_NAME` (Atlas project name)
-  - `TF_VAR_CLUSTER_NAME` (Atlas cluster name)
+  - `ARM_CLIENT_ID` (Managed identity's Client Id)
+  - `ARM_SUBSCRIPTION_ID` (The subscription Id where the resources will be created)
+  - `ARM_TENANT_ID` (The tenant Id of the subscription where the resources will be created)
+  - `TF_VAR_project_name` (Atlas project name)
+  - `TF_VAR_cluster_name` (Atlas cluster name)
   - `TF_VAR_resource_group_name_tfstate` (Name of Resource Group for TF state)
   - `TF_VAR_storage_account_name_tfstate` (Name of Storage Account for TF state)
   - `TF_VAR_container_name_tfstate` (Name of Container for TF state)
   - `TF_VAR_key_name_tfstate` (Name of devops' TF state key)
-  #### The variable below is optional, just in case you want to deploy the test db connection app.
+
+  #### The variable below is optional, just in case you want to deploy the test db connection app
+
   - `TF_VAR_key_name_infra_tfstate` (Name of Key for Infra's TF state)
+
+- **Important:**
+  - You will find the org id in the organization's settings as shown below:
+  ![org_id](../images/org_id.png)
 
 ---
 
 ## Terraform version
 
 Terraform version is pinned in `.terraform-version`:
-- Local devs: install `tfenv` or `asdf` for automatic switching.
+
+- Local: install [`tfenv`](https://github.com/tfutils/tfenv) or [`asdf`](https://asdf-vm.com/) for automatic switching.
 - Pipelines: read `.terraform-version` dynamically.
-- `terraform.tf` required_version is auto-synced from `.terraform-version`.
 
 To upgrade:
+
 1. Update `.terraform-version`
-2. Pipelines and local devs will automatically use the new version.
-3. `terraform.tf` is updated automatically during CI/CD.
+2. Update `terraform.tf` _required_version_ for modules and templates
+3. Pipelines and local envs will automatically use the new version.
 
 ---
 

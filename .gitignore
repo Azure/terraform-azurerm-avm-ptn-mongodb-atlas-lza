@@ -22,3 +22,6 @@ Thumbs.db
 # Test project build outputs
 test-db-connection/**/bin/
 test-db-connection/**/obj/
+
+## Project local variables
+*local.tfvars

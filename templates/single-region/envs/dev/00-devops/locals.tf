@@ -25,12 +25,6 @@ locals {
     location    = local.location
   }
 
-  # Atlas
-
-  # Flag to determine whether a MongoDB Atlas organization should be created. Set to true to create, false to skip.
-  # If set to true, ensure the organization_name, first_name, last_name, and email_address fields are properly configured.
-  should_create_mongo_org = true
-
   organization_name = var.mongodb_atlas_organization_name
   first_name        = var.first_name
   last_name         = var.last_name
