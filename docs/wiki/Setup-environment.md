@@ -93,10 +93,14 @@ In this environment, set the following:
   - `TF_VAR_storage_account_name_tfstate` (Name of Storage Account for TF state)
   - `TF_VAR_container_name_tfstate` (Name of Container for TF state)
   - `TF_VAR_key_name_tfstate` (Name of devops' TF state key)
+  - `FUNCTION_APP_NAME` (Name of the Function App created in Infrastructure step for the Mongo Atlas Metrics)
+  - `INFRA_RG_NAME` (Name of the Resource Group created for the Infrastructure resources)
 
   #### The variable below is optional, just in case you want to deploy the test db connection app
 
   - `TF_VAR_key_name_infra_tfstate` (Name of Key for Infra's TF state)
+  - `APP_RG_NAME` (Name of the Resource Group created for the Application step resources)
+  - `APP_WEBAPPS` (Comma-separated string value of Web App names. Use a single name for single-region deployments, and multiple names for multi-region deployments. This value can only be set after running the Application step, where the Web Apps are deployed.)
 
 - **Important:**
   - You will find the org id in the organization's settings as shown below:

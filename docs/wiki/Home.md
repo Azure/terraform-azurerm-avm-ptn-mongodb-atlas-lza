@@ -15,7 +15,7 @@ This wiki documents how to automate the deployment of MongoDB Atlas on Azure usi
 - [Deploy with Pipeline](./Deploy-with-pipeline.md) - Automated deployment using CI/CD pipeline
 - [Deploy with Manual Steps](./Deploy-with-manual-steps.md) - Manual deployment steps
 
-### Architecture and Modules
+### Modules
 
 - [Modules](./Modules.md) - Available Terraform modules and their usage
 
@@ -27,4 +27,3 @@ This wiki documents how to automate the deployment of MongoDB Atlas on Azure usi
 
 - [Frequently Asked Questions](./FAQ.md) - Common questions and answers
 - [Known Issues](./KnownIssues.md) - Known limitations and workarounds
-- [Contributing](./Contributing.md) - How to contribute to this project

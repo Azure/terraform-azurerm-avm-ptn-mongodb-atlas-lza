@@ -18,6 +18,8 @@ This guide provides a clear, step-by-step process for deploying infrastructure a
 - [Step 01: Base Infrastructure](#step-01-base-infrastructure)
 - [Step 02: Application](#step-02-application)
 - [Quick Checklist for Local Manual Runs](#quick-checklist-for-local-manual-runs)
+- [Provision an already created Terraform backend](#provision-an-already-created-terraform-backend)
+- [Provision already created Resource Groups](#provision-already-created-resource-groups)
 
 ## Overview: Deployment Sequence
 
@@ -42,9 +44,10 @@ This guide provides a clear, step-by-step process for deploying infrastructure a
    - Can be run manually or via the pipeline.
    - **Navigate to the correct path for your deployment type before running this step.**
 
-3. **Step 02: Application**
+3. **Step 02: Application (optional)**
+   - This step deploys the infrastructure for the Test Database Connection app that makes a test connection with the cluster deployed in the step 1.
    - Deploys application infrastructure: App Service Plan, subnet, and an empty Azure Web App with VNet integration.
-   - Does not deploy a test app or application code. For instructions on deploying and testing the test database connection app, see [Test_DB_connection_steps.md](Test_DB_connection_steps.md).
+   - Does not deploy the Test Database Connection app code. For instructions on deploying and testing the Test Database app Connection app, see [Test_DB_connection_steps.md](Test_DB_connection_steps.md).
    - Can be run manually or via the pipeline.
    - **Navigate to the correct path for your deployment type before running this step.**
 
@@ -173,7 +176,7 @@ terraform apply -var-file=local.tfvars tfplan
 
 This step provisions network resources, configures MongoDB Atlas (project, cluster, PrivateLink), and deploys observability resources. For multi-region deployments, it also creates VNet peering connections between regions.
 
-Observability resources provision the infrastructure needed to host a Function App for MongoDB Atlas metrics collection, including Application Insights, storage, and networking. The actual metrics function code (which connects to the MongoDB Atlas API, retrieves key metrics, and pushes them to Application Insights) must be deployed separately after the infrastructure is provisioned. This enables centralized monitoring, alerting, and analysis of your MongoDB Atlas environment directly within Azure.
+Observability resources provision the infrastructure needed to host a Function App for MongoDB Atlas metrics collection, including Application Insights, storage, and networking. The actual metrics function code (which connects to the MongoDB Atlas API, retrieves key metrics, and pushes them to Application Insights) must be deployed separately after the infrastructure is provisioned. This enables centralized monitoring, alerting, and analysis of your MongoDB Atlas environment directly within Azure. For more information on how to deploy the metrics function, please review the [Mongo Atlas Metrics Deployment guide](./MongoAtlasMetrics_deployment_steps.md).
 
 ---
 
@@ -257,6 +260,233 @@ This deploys application resources (App Service, test app, VNet integration).
    - Update `terraform.tf` with backend values from Step 00.
    - Ensure `data.tf` references Step 01 outputs using the `terraform_remote_state` configuration.
    - Run Terraform commands.
+
+## Provision an already created Terraform backend
+
+You still need to follow the steps in [Step 00: DevOps (Mandatory, Always Manual) and Marketplace](#step-00-devops-mandatory-always-manual-and-marketplace). However, **first** you need to follow these instructions:
+
+- Remove the `backend local` block:
+
+  ``` hcl
+    backend "local" {}
+  ```
+
+- Uncomment and update the `backend azurerm` block with the appropiate values of the existing Terraform backend:
+
+  ``` hcl
+    backend "azurerm" {
+      resource_group_name  = "{rg-name-of-existing-backend}"
+      storage_account_name = "{sa-name-of-existing-backend}"
+      container_name       = "{container-devops-name-of-existing-backend}"
+      key                  = "devops.tfstate"
+    }
+  ```
+
+- In `modules/devops/main.tf`, delete the following resources:
+
+  ``` hcl
+  resource "azurerm_storage_account" "sa" {
+    name                            = var.storage_account_name
+    resource_group_name             = azurerm_resource_group.devops_rg.name
+    location                        = var.location
+    account_tier                    = var.account_tier
+    account_replication_type        = var.replication_type
+    tags                            = var.tags
+    min_tls_version                 = "TLS1_2"
+    allow_nested_items_to_be_public = false
+    blob_properties {
+      delete_retention_policy {
+        days = 7
+      }
+
+      versioning_enabled = true
+    }
+
+    infrastructure_encryption_enabled = true
+  }
+
+  resource "azurerm_storage_container" "container" {
+    name                  = var.container_name
+    storage_account_id    = azurerm_storage_account.sa.id
+    container_access_type = var.container_access_type
+  }
+  ```
+
+- In `modules/devops/root_identity.tf`, delete the following resource:
+
+  ``` hcl
+  resource "azurerm_role_assignment" "blob_data_contributor" {
+    scope                = azurerm_storage_account.sa.id
+    role_definition_name = "Storage Blob Data Contributor"
+    principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  }
+  ```
+
+- Delete all references to the storage account and storage account container in the devops module and in the step 0 (variables and outputs).
+
+- If you want to use the pipeline, **the pipeline needs permissions over the resource group and the storage account where your Terraform backend is stored**. So, you need to add a role assignment to the Managed Identity created in `modules/devops/root_identity.tf` over the storage account:
+
+  ``` hcl
+  data "azurerm_storage_account" "sa_information" {
+    name                = "{name-of-storage-account-where-the-terraform-backend-is-stored}"
+    resource_group_name = "{name-of-resource-group-where-the-terraform-backend-is-stored}"
+  }
+
+  data "azurerm_resource_group" "rg_information" {
+    name = "{name-of-resource-group-where-the-terraform-backend-is-stored}"
+  }
+
+  resource "azurerm_role_assignment" "terraform_backend_permission" {
+    scope                = data.azurerm_storage_account.sa_information.id
+    role_definition_name = "Storage Blob Data Contributor"
+    principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  }
+
+  resource "azurerm_role_assignment" "terraform_backend_rg_permission" {
+    scope                = data.azurerm_resource_group.rg_information.id
+    role_definition_name = "Contributor"
+    principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  }
+  ```
+
+**Notes:**
+- Skip the steps of `Migrate the Terraform state to the newly created storage account` since the Terraform state will be in the cloud automatically.
+
+- All resources should be under the same Azure subscription.
+
+- If you run the step 01 and/or 02 manually, you'll need to point the `terraform.tf` files for those steps to the same Terraform backend configuration provided in the step 0.
+
+- When following the [Setup-environment.md](Setup-environment.md) guide to set the Pipeline variables, the values for the variables `TF_VAR_resource_group_name_tfstate`, `TF_VAR_storage_account_name_tfstate`,`TF_VAR_container_name_tfstate` will be the same you used as Terraform backend in step 0.
+
+## Provision already created Resource Groups
+
+You still need to follow the steps in [Step 00: DevOps (Mandatory, Always Manual) and Marketplace](#step-00-devops-mandatory-always-manual-and-marketplace). However, **first** you need to follow these instructions:
+
+- Set the names of the existing resource groups as parameters for the `devops` module in `templates/{single region or multi region}/envs/{environment}/00-devops/main.tf`:
+
+  ```hcl
+    resource_group_name_devops         = "{rg-name-to-handle-step00-resources}"
+    resource_group_name_infrastructure = "{rg-name-to-handle-step01-resources}"
+    resource_group_name_app            = "{rg-name-to-handle-step02-resources}"
+  ```
+
+- In `modules/devops/main.tf` delete the following resources:
+
+  ``` hcl
+  resource "azurerm_resource_group" "devops_rg" {
+    name     = var.resource_group_name_devops
+    location = var.location
+    tags     = var.tags
+  }
+
+  resource "azurerm_resource_group" "infrastructure_rg" {
+    name     = var.resource_group_name_infrastructure
+    location = var.location
+    tags     = var.tags
+  }
+
+  resource "azurerm_resource_group" "application_rg" {
+    count    = length(var.resource_group_name_app) > 0 ? 1 : 0
+    name     = var.resource_group_name_app
+    location = var.location
+    tags     = var.tags
+  }
+  ```
+
+- In the `modules/devops/main.tf` you'll need to add:
+
+  ``` hcl
+  data "azurerm_resource_group" "devops" {
+    name = var.resource_group_name_devops
+  }
+
+  data "azurerm_resource_group" "infra" {
+    name = var.resource_group_name_infrastructure
+  }
+
+  data "azurerm_resource_group" "app" {
+    name = var.resource_group_name_app
+  }
+  ```
+
+- Update the references from the deleted resource group blocks and add the references to the data blocks (in the devops module)
+
+  `root_identity.tf`:
+
+  ``` hcl
+  resource "azurerm_user_assigned_identity" "identity" {
+    location            = var.location
+    name                = "root-identity"
+    resource_group_name = data.azurerm_resource_group.devops.name
+  }
+
+  resource "azurerm_federated_identity_credential" "federated_identity" {
+    name                = var.federation.federated_identity_name
+    subject             = var.federation.subject
+    audience            = var.audiences
+    issuer              = var.issuer
+    resource_group_name = data.azurerm_resource_group.devops.name
+    parent_id           = azurerm_user_assigned_identity.identity.id
+  }
+
+  locals {
+    permissions_to_create = [
+      data.azurerm_resource_group.devops,
+      data.azurerm_resource_group.infra
+    ]
+  }
+
+  resource "azurerm_role_assignment" "optional_permission" {
+    scope                = data.azurerm_resource_group.app.id
+    role_definition_name = "Contributor"
+    principal_id         = azurerm_user_assigned_identity.identity.principal_id
+  }
+  ```
+
+  `main.tf`:
+  ``` hcl
+  resource "azurerm_storage_account" "sa" {
+    name                            = var.storage_account_name
+    resource_group_name             = data.azurerm_resource_group.devops.name
+    location                        = var.location
+    account_tier                    = var.account_tier
+    account_replication_type        = var.replication_type
+    tags                            = var.tags
+    min_tls_version                 = "TLS1_2"
+    allow_nested_items_to_be_public = false
+    blob_properties {
+      delete_retention_policy {
+        days = 7
+      }
+
+      versioning_enabled = true
+    }
+
+    infrastructure_encryption_enabled = true
+  }
+  ```
+
+  `outputs.tf`:
+
+  ```hcl
+  output "identity_info" {
+    value = {
+      tenant_id                        = data.azurerm_client_config.current.tenant_id
+      subscription_id                  = data.azurerm_client_config.current.subscription_id
+      client_id                        = azurerm_user_assigned_identity.identity.client_id
+      devops_resource_group_id         = data.azurerm_resource_group.devops.id
+      infrastructure_resource_group_id = data.azurerm_resource_group.infra.id
+      application_resource_group_id    = length(var.resource_group_name_app) > 0 ? data.azurerm_resource_group.app.id : null
+      state_storage_name               = azurerm_storage_account.sa.name
+      state_container_name             = azurerm_storage_container.container.name
+      storage_account_id               = azurerm_storage_account.sa.id
+    }
+  }
+  ```
+
+**Notes:**
+
+- In these examples we are showing how to use 3 already created Resource Groups, but you can adjust it to add just 1 or 2 and create the rest through Terraform. Also, take in account that the creation of the resource group for the step 02 is optional.
 
 ---
 

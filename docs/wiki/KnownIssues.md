@@ -4,6 +4,8 @@
 
 - [MongoDB Marketplace Organization Uniqueness](#mongodb-marketplace-organization-uniqueness)
 - [Manual Atlas Organization Cleanup Required](#manual-atlas-organization-cleanup-required)
+- [Getting a "Provider produced inconsistent result after apply" error when running the pipeline](#getting-a-provider-produced-inconsistent-result-after-apply-error-when-running-the-pipeline)
+- [Getting a "The requested region is currently out of capacity for the requested instance size" error when deploying new clusters](#getting-a-the-requested-region-is-currently-out-of-capacity-for-the-requested-instance-size-error-when-deploying-new-clusters)
 
 ## MongoDB Marketplace Organization Uniqueness
 

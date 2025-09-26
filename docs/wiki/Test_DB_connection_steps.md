@@ -100,6 +100,8 @@ Depending on your environment setup, follow the appropriate path:
 
 ## 4. Deploy the Test Application Using Visual Studio Code
 
+> You can deploy the application via pipelines using the `Deploy Applications' code` GitHub Action. If you are using the pipeline, you should only [Configure Connection String](#3-configure-connection-string) to set the expected environment variable in the Web App. Also, in the [Setup-environment.md](Setup-environment.md), you have the instructions for the environment variables you need to set up to make the pipeline work successfully.
+
 1. Run `dotnet publish -c Release -o ./bin/Publish` in the `test-db-connection/test-pe-db-connection/test-db-connection/` directory.
 2. Open Visual Studio Code.
 3. Ensure **Azure Resources** and **Azure App Service** extensions are installed, otherwise, install them.

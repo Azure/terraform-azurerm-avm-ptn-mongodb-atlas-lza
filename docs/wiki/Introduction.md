@@ -7,7 +7,7 @@ This repository provides a modular Terraform solution for deploying a secure Mon
 ## Disclaimer
 
 > **Warning:** This code is provided for demonstration purposes and should not be used in production without thorough testing. You are responsible for validating the configuration and ensuring it meets your environment's requirements.
-> Deploying this infrastructure is **NOT free**. It includes paid resources such as a dedicated MongoDB Atlas cluster, networking resources, and various Azure services. Please review the associated costs carefully before running `terraform apply`. For more details, refer to the [MongoDB Atlas Private Endpoint documentation](https://www.mongodb.com/docs/atlas/security-private-endpoint/).
+> Deploying this infrastructure is **NOT free**. It includes paid resources such as a dedicated MongoDB Atlas cluster, networking resources, and various Azure services. Please review the associated costs carefully before running `terraform apply`.
 
 ---
 
@@ -78,7 +78,7 @@ Ensure you have completed all prerequisites before using this repository. Detail
 ## Deployment Flow
 
 > **Important:** Step 0 (DevOps) must always be run manually before any other steps, even if you use the pipeline for subsequent steps. See [Manual Deployment Steps](Deploy-with-manual-steps.md) for details.
-> **Tip:** Alternatively, you can use the automated pipelines for infrastructure and application deployment. See the [Pipeline Deployment Guide](Deploy-with-pipeline.md) and select the appropriate pipeline for your region type (single-region or multi-region).
+> **Tip:** After deploying the step 0, we recommend you to use the automated pipelines for infrastructure and application deployment. See the [Pipeline Deployment Guide](Deploy-with-pipeline.md) and select the appropriate pipeline for your region type (single-region or multi-region).
 
 This solution supports both single-region and multi-region deployments. Follow the flow that matches your scenario:
 

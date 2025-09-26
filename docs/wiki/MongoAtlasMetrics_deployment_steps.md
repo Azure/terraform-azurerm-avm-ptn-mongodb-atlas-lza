@@ -20,6 +20,8 @@ Before deploying the `MongoAtlasMetrics` app, ensure the following prerequisites
 
 ## Deployment Steps
 
+> You can deploy the function via pipelines using the `Deploy Applications' code` GitHub Action. Also, in the [Setup-environment.md](Setup-environment.md), you have the instructions for the environment variables you need to set up to make the pipeline work successfully.
+
 ### Deploy the MongoAtlasMetrics App Using Visual Studio Code
 
 1. Open Visual Studio Code and open the folder where the Function App is: `MongoAtlasMetrics\MongoAtlasMetrics`.

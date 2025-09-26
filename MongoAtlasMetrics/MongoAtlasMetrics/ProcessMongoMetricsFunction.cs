@@ -104,9 +104,17 @@ namespace MongoAtlasMetrics
             using var jsonDoc = JsonDocument.Parse(content);
             var root = jsonDoc.RootElement;
 
-            if (root.TryGetProperty("id", out var id))
+            if (root.TryGetProperty("id", out var idProp))
             {
-                return id.GetString();
+                var id = idProp.GetString();
+                if (!string.IsNullOrWhiteSpace(id))
+                {
+                    return id;
+                }
+                else
+                {
+                    throw new Exception("Group id in Atlas response is null or empty.");
+                }
             }
 
             throw new Exception("No group id found in Atlas response.");
@@ -132,7 +140,22 @@ namespace MongoAtlasMetrics
             {
                 if (process.TryGetProperty("typeName", out var typeProp) && typeProp.GetString() == "REPLICA_PRIMARY")
                 {
-                    return process.GetProperty("id").GetString();
+                    if (process.TryGetProperty("id", out var idProp))
+                    {
+                        var id = idProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(id))
+                        {
+                            return id;
+                        }
+                        else
+                        {
+                            throw new Exception("Primary process id is null or empty.");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Primary process does not have an 'id' property.");
+                    }
                 }
             }
 
@@ -150,7 +173,7 @@ namespace MongoAtlasMetrics
             {
                 var response = await client.GetAsync(url);
                 bool success = response.IsSuccessStatusCode;
-                string content = await response.Content.ReadAsStringAsync();
+                string content = await response.Content.ReadAsStringAsync() ?? "";
 
                 telemetryClient.TrackDependency(new DependencyTelemetry
                 {
@@ -168,7 +191,7 @@ namespace MongoAtlasMetrics
             {
                 logger.LogError(ex, "Error calling MongoDB Atlas API.");
                 telemetryClient.TrackException(ex);
-                return (false, null);
+                return (false, "");
             }
         }
 
@@ -267,7 +290,12 @@ namespace MongoAtlasMetrics
 
             if (jsonDoc.RootElement.TryGetProperty("access_token", out var tokenElement))
             {
-                return tokenElement.GetString();
+                var token = tokenElement.GetString();
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    throw new Exception("access_token in response is null or empty.");
+                }
+                return token;
             }
 
             throw new Exception("access_token not found in response.");

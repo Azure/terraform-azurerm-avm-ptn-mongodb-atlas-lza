@@ -16,6 +16,8 @@ This guide explains how to deploy the infrastructure and application (optional) 
 - [Pipeline Steps](#pipeline-steps)
 - [Running the Pipeline](#running-the-pipeline)
 - [Notes](#notes)
+- [Provision an already created Terraform backend](#provision-an-already-created-terraform-backend)
+- [Provision already created Resource Groups](#provision-already-created-resource-groups)
 
 ## Overview
 
@@ -65,6 +67,7 @@ _terraform init -migrate-state output example_
      - For multi-region deployments: VNet peering connections between regions
 
 3. **Application (Optional)**
+   - This step deploys the infrastructure for the Test Database Connection app that makes a test connection with the cluster deployed in the step 1.
    - Deploys from `envs/dev/02-app-resources/`:
      - App Service Plan
      - Virtual network and subnet for the app
@@ -73,7 +76,9 @@ _terraform init -migrate-state output example_
      - As mentioned in the [Setup-environment.md](Setup-environment.md), in this step you also need to set the `TF_VAR_key_name_infra_tfstate` variable in the GitHub environment.
 
 4. **Testing Connectivity (Optional)**
-   -You can deploy a web app (located in the `test-db-connection` folder) to test the connection to the database. For more information, see [Test_DB_connection_steps.md](Test_DB_connection_steps.md).
+   - You can deploy a web app (located in the `test-db-connection` folder) to test the connection to the database. For more information, see [Test_DB_connection_steps.md](Test_DB_connection_steps.md).
+   - As mentioned in the [Setup-environment.md](Setup-environment.md), in this step you also need to set the `FUNCTION_APP_NAME`, `INFRA_RG_NAME`, `APP_WEBAPPS` and `APP_RG_NAME` variable in the GitHub environment.
+
 
 ## Running the Pipeline
 
@@ -84,19 +89,25 @@ _terraform init -migrate-state output example_
 
 ### Manual Trigger (Workflow Dispatch)
 
-You can run the pipeline from the Actions tab in GitHub by selecting the workflow `CI - CD Infra Dev (Single-Region)` or `CI - CD Infra Dev (Multi-Region)` and clicking "Run workflow".
+You can run the pipeline from the Actions tab in GitHub by selecting the workflow `CI - CD Infra Dev (Single-Region)`, `CI - CD Infra Dev (Multi-Region)` or `Deploy Applications' code` and clicking "Run workflow".
 
 **How to apply changes manually:**
 
 - In the workflow dispatch UI, you will see checkboxes with the following display text:
+
+  **CI - CD Infra Dev (Single-Region)** and **CI - CD Infra Dev (Multi-Region)**:
   - **Run TF plan for base infrastructure**: This will just run the plan for the base infrastructure.
   - **Run TF plan and applies the plan for base infrastructure**: This will run the plan and apply the changes for the base infrastructure.
   - **Run TF plan for test application infrastructure (Optional)**: This will just run the plan for the Application step.
   - **Run TF plan and applies test application infrastructure (Optional)**: This will run the plan and apply the changes for the Application step.
 
+  **Deploy Applications' code**:
+  - **Deploy MongoAtlasMetrics Function App (Requires Infrastructure step deployed)**: The defualt value for this is `true`. This will deploy the MongoAtlasMetrics Function App.
+  - **Deploy Test DB Connection App (Optional - Requires Infrastructure & App steps deployed)**: This will deploy the Test DB Connection App.
+
 ### Region Type Selection
 
-There are two separate GitHub Actions workflows for deployments:
+There are three separate GitHub Actions workflows for deployments:
 
 - **Single-Region Pipeline:**
   - Workflow file: `.github/workflows/ci-cd-infra-dev-single-region.yml`
@@ -106,9 +117,21 @@ There are two separate GitHub Actions workflows for deployments:
   - Workflow file: `.github/workflows/ci-cd-infra-dev-multi-region.yml`
   - Use for multi-region deployments (resources in `templates/multi-region/envs/dev/`).
 
+- **Deploy Applications' code**
+  - Workflow file: `.github/workflows/ci-cd-application.yml`
+  - Use for deploying the MongoAtlasMetrics Function App and optionally deploy the Test DB Connection App.
+
 Select the workflow that matches your deployment requirements. Each pipeline automatically sets the correct working directory for Terraform steps.
 
 ## Notes
 
 - If you need to re-run the pipeline, ensure that any required manual steps (such as creating API keys) have been completed and the environment variables are up to date.
 - If you run both, the single region and the multi region pipelines, take in account that the Terraform state might get mixed, so before running the pipelines, make sure that you are pointing to the expected Terraform file.
+
+## Provision an already created Terraform backend
+
+Please follow the steps provided in the Manual steps guide for [using an already created Terraform backend](./Deploy-with-manual-steps.md#provision-an-already-created-terraform-backend).
+
+## Provision already created Resource Groups
+
+Please follow the steps provided in the Manual steps guide for [using already created resource groups](./Deploy-with-manual-steps.md#provision-already-created-resource-groups).
