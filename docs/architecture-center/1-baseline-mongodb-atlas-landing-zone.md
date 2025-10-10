@@ -70,6 +70,20 @@ The architecture brings together several core components to deliver security, sc
 
 ---
 
+## Alternatives
+
+When considering the deployment of MongoDB Atlas in Azure, several alternative database services and deployment patterns may be evaluated based on organizational requirements, technical constraints, and existing skill sets:
+
+- [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction) is a fully managed, globally distributed NoSQL database service that supports multiple APIs, including MongoDB API compatibility. While Cosmos DB offers high availability and low latency, it may not provide complete parity with all MongoDB Atlas features. Organizations seeking a fully Azure-native solution with API-level compatibility may consider Cosmos DB, but should review functional differences and potential migration impacts.
+
+- **Self-Managed MongoDB on Azure Virtual Machines**: Organizations may choose to deploy and manage MongoDB clusters directly on Azure infrastructure using virtual machines. While this approach offers maximum control, it increases operational overhead and places responsibility for maintenance, scaling, backups, and security on the organization.
+
+- **Other Cloud-Hosted MongoDB Providers**: Some organizations may evaluate other MongoDB hosting solutions or multi-cloud strategies to meet specific regulatory, operational, or business requirements.
+
+Each alternative has its own trade-offs in terms of cost, operational complexity, skill requirements, and feature set. Carefully assess your scenario, data architecture, and operational goals before selecting a solution.
+
+For more information about MongoDB Atlas and its [use cases](https://www.mongodb.com/solutions/use-cases), refer to the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/).
+
 ## Security
 
 Security provides assurances against deliberate attacks and the abuse of your valuable data and systems. For more information, see [Design review checklist for Security](https://learn.microsoft.com/en-us/azure/well-architected/security/checklist).
