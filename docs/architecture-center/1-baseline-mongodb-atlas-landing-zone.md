@@ -139,20 +139,19 @@ Use Microsoft Cost Management tools to track overall Azure expenses across all s
 
 Monitoring is a critical part of any production-level solution. Support Azure solutions with a [monitoring strategy](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/strategy/monitoring-strategy) as part of the end-to-end [observability](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/manage/monitor/observability) strategy.
 
-The *Landing Zone for MongoDB Atlas on Azure* does not deploy or configure monitoring solutions for MongoDB Atlas on Azure. Users are responsible for implementing these practices based on their specific requirements.
+The *Landing Zone for MongoDB Atlas on Azure* includes a monitoring component, as shown in the architecture diagrams, where an Azure Function App periodically queries the MongoDB Atlas API to gather database health and performance metrics, which are visualized in the Application Insights dashboards. However, monitoring best practices can be further extended, and users are responsible for implementing these practices based on their specific requirements.
 
-Use Atlas to monitor:
+Please reference the [How to Monitor MongoDB](https://www.mongodb.com/resources/products/capabilities/how-to-monitor-mongodb-and-what-metrics-to-monitor) article for more information about:
 
-- **Metrics**
-- **Real-Time Performance Panel**
+- **Scan and order**
+- **Query targeting**
+- **Normalized System CPU**
 - **Namespace Insights**
 - **Query Profiler**
 - **Performance Advisor**
 - **Billing Cost Explorer**
 
-References for metrics: [How to Monitor MongoDB and What Metrics to Monitor](https://www.mongodb.com/resources/products/capabilities/how-to-monitor-mongodb-and-what-metrics-to-monitor).
-
-Configure **Project Alerts** to notify on metric drift from your baseline (e.g., rising query targeting, any scan-and-order, or normalized CPU sustained >70% or <40%). Docs: [Monitoring and Alerts](https://www.mongodb.com/docs/atlas/monitoring-alerts/).
+Also, we recommend to configure **Project Alerts** to notify on metric drift from your baseline (e.g., rising query targeting, any scan-and-order, or normalized CPU sustained >70% or <40%). For more information, check out the [Monitoring and Alerts](https://www.mongodb.com/docs/atlas/monitoring-alerts/) article.
 
 **Note:** Azure Monitor cannot read Atlas metrics directly. Use Atlas UI/API/webhooks or supported integrations to ingest them.
 
