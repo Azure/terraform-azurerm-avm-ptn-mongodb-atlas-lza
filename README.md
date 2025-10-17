@@ -28,6 +28,21 @@ The infrastructure can be deployed using the provided GitHub Actions workflows f
 
 ---
 
+## Module Overview
+
+For module-specific details, refer to [Modules.md](./docs/wiki/Modules.md):
+
+- [Application](./modules/application/readme.md): App Service Plan, Web App, and VNet integration.
+- [DevOps](./modules/devops/readme.md): Remote state, identity, and automation.
+- [MongoDB Atlas Config Single Region](./modules/atlas_config_single_region/readme.md): Atlas project, cluster, and PrivateLink.
+- [MongoDB Atlas Config Multi Region](./modules/atlas_config_multi_region/readme.md): Atlas project, cluster, and PrivateLink.
+- [MongoDB Marketplace](./modules/mongodb_marketplace/readme.md): Atlas org deployment via Azure Marketplace.
+- [Network](./modules/network/readme.md): VNet, subnets, NAT, NSG, and private endpoints.
+- [VNet Peering](./modules/vnet_peering/readme.md): Virtual network peering for multi-region connectivity.
+- [Observability](./modules/observability/readme.md): Application Insights, and supporting resources for monitoring and metrics collection.
+
+---
+
 ## Disclaimer
 
 > **Warning:** Deploying this infrastructure is **NOT free**.  
