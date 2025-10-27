@@ -1,0 +1,12 @@
+# GitHub configuration
+github_organization_name = ""
+github_repository_name   = ""
+
+# MongoDB Atlas configuration
+should_create_mongo_org         = true
+mongodb_atlas_organization_name = ""
+
+# MongoDB Atlas user
+first_name    = ""
+last_name     = ""
+email_address = ""
