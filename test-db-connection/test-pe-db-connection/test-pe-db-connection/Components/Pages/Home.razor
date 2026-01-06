@@ -1,0 +1,41 @@
+﻿@page "/"
+@using test_pe_db_connection.Services.User
+@inject DbAccessService dbAccessService
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Was DB connection successful?
+@if (WasDbConnectionSuccessfull == 1)
+{
+    <p>Yes, the connection to the database was successful.</p>
+}
+else if (WasDbConnectionSuccessfull == 0)
+{
+    <p>No, the connection to the database failed.</p>
+}
+else
+{
+    <p>Checking database connection...</p>
+}
+
+
+@code {
+    private int? WasDbConnectionSuccessfull { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            WasDbConnectionSuccessfull = dbAccessService.TestDbConnection();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("User error: ", e);
+            WasDbConnectionSuccessfull = 0; // Set to 0 if an error occurs
+        }
+        
+        StateHasChanged();
+    }
+}
