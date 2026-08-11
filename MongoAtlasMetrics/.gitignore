@@ -1,0 +1,43 @@
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+
+# Build output
+bin/
+obj/
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Azure Functions local settings
+local.settings.json
+secrets.json
+
+# Publish artifacts
+*.publishsettings
+*.azurePubxml
+*.azurePubxml.user
+
+# NuGet packages
+*.nupkg
+# Package folders
+packages/
+# Visual Studio cache
+*.cache
+
+# Rider caches
+*.iml
+out/
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

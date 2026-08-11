@@ -1,0 +1,35 @@
+directory:
+  - templates
+download-external-modules: true
+
+# Skipped since these apply to the step 02 which is optional and should only be used for testing purposes. Update them as needed.
+skip-check:
+  - CKV_AZURE_225
+  - CKV_AZURE_212
+  - CKV_AZURE_13
+  - CKV_AZURE_71
+  - CKV_AZURE_88
+  - CKV_AZURE_213
+  - CKV_AZURE_63
+  - CKV_AZURE_14
+  - CKV_AZURE_222
+  - CKV_AZURE_18
+  - CKV_AZURE_16
+  - CKV_AZURE_78
+  - CKV_AZURE_17
+  - CKV_AZURE_65
+  - CKV_AZURE_66
+  - CKV_AZURE_211
+  - CKV2_AZURE_40
+# Skipped since these are not applicable to our use case. Update them as needed.
+  - CKV_AZURE_33
+  - CKV_AZURE_59
+  - CKV_AZURE_190
+  - CKV_AZURE_206
+  - CKV_TF_1
+  - CKV2_AZURE_21
+  - CKV2_AZURE_33
+  - CKV2_AZURE_1
+  - CKV2_AZURE_41
+  - CKV2_GHA_1
+  - CKV_GHA_7
