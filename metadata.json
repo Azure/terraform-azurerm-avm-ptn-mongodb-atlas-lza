@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "MongoDB Atlas on Azure - Landing Zone (LZ)",
+  "moduleDescription": "Intended Terraform pattern for a MongoDB Atlas landing zone on Azure.",
+  "canonicalType": "mongodb-atlas-lza",
+  "owners": [
+    "cloud-architect-dev"
+  ],
+  "telemetryIdPrefix": "46d3xtrf.ptn.408c741"
+}
