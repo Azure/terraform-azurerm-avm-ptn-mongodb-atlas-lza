@@ -1,3 +1,5 @@
-# terraform-azurerm-avm-template
+# MongoDB Atlas on Azure - Landing Zone (LZ)
 
-This is a template repo for Terraform Azure Verified Modules.
+Intended Terraform pattern for a MongoDB Atlas landing zone on Azure.
+
+**Status: Proposed.** This repository contains the generic Avm.Authoring virtual network starter, not a MongoDB Atlas landing-zone implementation. Do not use this starter to deploy MongoDB Atlas.
